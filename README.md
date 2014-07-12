@@ -1,7 +1,7 @@
 # Black Rook OpenAL
 
 Copyright (c) 2014 Black Rook Software. All rights reserved.  
-[http://blackrooksoftware.com/projects.htm?name=oal](http://blackrooksoftware.com/projects.htm?name=oal)  
+[http://blackrooksoftware.com/projects.htm?name=soundoal](http://blackrooksoftware.com/projects.htm?name=soundoal)  
 [https://github.com/BlackRookSoftware/SoundOAL](https://github.com/BlackRookSoftware/SoundOAL)
 
 ### NOTICE
