@@ -33,7 +33,7 @@ public abstract class OALFilter extends OALObject
 	{
 		int[] STATE_NUMBER = new int[1];
 		al.alGetError();
-		al.alGenFilters(1,STATE_NUMBER,0);
+		al.alGenFilters(1, STATE_NUMBER, 0);
 		errorCheck(this);
 		return STATE_NUMBER[0];
 	}

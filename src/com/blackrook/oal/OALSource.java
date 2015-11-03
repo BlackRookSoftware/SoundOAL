@@ -7,6 +7,7 @@
  ******************************************************************************/
 package com.blackrook.oal;
 
+import com.blackrook.commons.Common;
 import com.blackrook.commons.linkedlist.Queue;
 import com.blackrook.commons.list.List;
 import com.blackrook.commons.math.RMath;
@@ -20,9 +21,8 @@ import com.jogamp.openal.ALC;
  */
 public final class OALSource extends OALObject
 {
-	public static final boolean
-	AUTO_VELOCITY = true,
-	NO_AUTO_VELOCITY = false;
+	public static final boolean AUTO_VELOCITY = true;
+	public static final boolean NO_AUTO_VELOCITY = false;
 
 	/** Source's position. */
 	private float[] position;
@@ -54,7 +54,6 @@ public final class OALSource extends OALObject
 	/** Source's cone outer gain. */
 	private float outerConeGain;
 	
-	
 	/** Is this a looping source? */
 	private boolean looping;
 	/** Is this source relative to the listener? */
@@ -64,16 +63,18 @@ public final class OALSource extends OALObject
 	private boolean autoVelocity;
 
 	/** Singley-bound buffer. */
-	private OALBuffer boundBuffer;
+	private OALBuffer buffer;
 	/** Buffer queue. */
-	private Queue<OALBuffer> boundBufferQueue;
+	private Queue<OALBuffer> bufferQueue;
 	
+	/** Effect slots. */
+	private int effectSlots;
 	/** Auxilliary effect slot array. */
-	private OALAuxEffectSlot[] auxEffectSlots;
+	private OALEffectSlot[] auxEffectSlots;
 	/** Auxilliary effect slot array. */
 	private OALFilter[] auxEffectSlotFilters;
 	/** Direct filter bound to this source. */
-	private OALFilter directFilter;
+	private OALFilter dryFilter;
 	
 	/** The context that this Source belongs to. */
 	private OALSystem.Context contextRef;
@@ -88,36 +89,31 @@ public final class OALSource extends OALObject
 	
 	/**
 	 * Creates a new source object.
-	 * @throws SoundException if an OpenAL source cannot be allocated.
-	 */
-	OALSource(AL al, ALC alc)
-	{
-		this(al,alc,NO_AUTO_VELOCITY);
-	}
-	
-	/**
-	 * Creates a new source object.
 	 * @param autovel	should velocity automatically be calculated?
 	 * @throws SoundException if an OpenAL source cannot be allocated.
 	 */
-	OALSource(AL al, ALC alc, boolean autovel)
+	OALSource(AL al, ALC alc, boolean autovel, int effectSlots)
 	{
 		super(al,alc);
-		boundBuffer = null;
-		boundBufferQueue = new Queue<OALBuffer>();
+		buffer = null;
+		bufferQueue = new Queue<OALBuffer>();
 		sourceListeners = new List<OALSourceListener>(3);
 		autoVelocity = autovel;
 
 		position = new float[3];
 		velocity = new float[3];
 		direction = new float[3];
-		reInit();
+		this.effectSlots = effectSlots;
+		auxEffectSlots = new OALEffectSlot[effectSlots];
+		auxEffectSlotFilters = new OALFilter[effectSlots];
+
+		reset();
 	}
 
 	protected final int allocate()
 	{
 		int[] STATE_NUMBER = new int[1];
-		al.alGenSources(1,STATE_NUMBER,0);
+		al.alGenSources(1, STATE_NUMBER, 0);
 		errorCheck(this);
 		return STATE_NUMBER[0];
 	}
@@ -125,7 +121,7 @@ public final class OALSource extends OALObject
 	/**
 	 * Sets this Source's settings to defaults, and releases all buffers bound to it.
 	 */
-	public void reInit()
+	public void reset()
 	{
 		setPosition(0,0,0);
 		setVelocity(0,0,0);
@@ -143,6 +139,9 @@ public final class OALSource extends OALObject
 		setInnerConeAngle(360);
 		setOuterConeAngle(360);
 		setOuterConeGain(0);
+		for (int i = 0; i < effectSlots; i++)
+			setEffectSlot(i, null, null);
+		setFilter(null);
 		setBuffer(null);
 		dequeueAllBuffers();
 	}
@@ -162,8 +161,6 @@ public final class OALSource extends OALObject
 	 */
 	public void setAmountOfAuxEffectSlots(int numSlots)
 	{
-		auxEffectSlots = new OALAuxEffectSlot[numSlots];
-		auxEffectSlotFilters = new OALFilter[numSlots];
 	}
 	
 	/**
@@ -171,9 +168,9 @@ public final class OALSource extends OALObject
 	 * @param slot	the slot to add this to. 
 	 * @param eSlot	the effect slot to add (can be null).
 	 */
-	public void setEffectSlot(int slot, OALAuxEffectSlot eSlot)
+	public void setEffectSlot(int slot, OALEffectSlot eSlot)
 	{
-		setEffectSlot(slot,eSlot,null);
+		setEffectSlot(slot, eSlot, null);
 	}
 	
 	/**
@@ -183,28 +180,36 @@ public final class OALSource extends OALObject
 	 */
 	public void setEffectSlot(int slot, OALFilter filt)
 	{
-		setEffectSlot(slot,null,filt);
+		setEffectSlot(slot, null, filt);
 	}
 	
 	/**
 	 * Sets an auxiliary effect in a particular slot.
-	 * @param slot	the slot to add this to. 
-	 * @param eSlot	the effect slot to add (can be null).
-	 * @param filt	the filter to add (can be null).
+	 * @param slot the slot to add this to. 
+	 * @param effectSlot the effect slot to add (can be null).
+	 * @param wetFilter	the filter to attach to this effect (can be null).
 	 */
-	public void setEffectSlot(int slot, OALAuxEffectSlot eSlot, OALFilter filt)
+	public void setEffectSlot(int slot, OALEffectSlot effectSlot, OALFilter wetFilter)
 	{
-		auxEffectSlots[slot] = eSlot;
-		auxEffectSlotFilters[slot] = filt;
-		al.alSource3i(getALId(), AL.AL_AUXILIARY_SEND_FILTER, 
-				eSlot==null?AL.AL_EFFECTSLOT_NULL:eSlot.getALId(), slot,
-				filt==null?AL.AL_FILTER_NULL:filt.getALId());
+		al.alSource3i(
+			getALId(), 
+			AL.AL_AUXILIARY_SEND_FILTER, 
+			effectSlot == null ? AL.AL_EFFECTSLOT_NULL : effectSlot.getALId(), 
+			slot,
+			wetFilter == null ? AL.AL_FILTER_NULL : wetFilter.getALId()
+		);
+		auxEffectSlots[slot] = effectSlot;
+		auxEffectSlotFilters[slot] = wetFilter;
 	}
 	
-	public void setFilter(OALFilter filt)
+	/**
+	 * Sets the "dry" filter to use for the dry signal for the effects later.
+	 * @param dryFilter the filter to use (can be null).
+	 */
+	public void setFilter(OALFilter dryFilter)
 	{
-		directFilter = filt;
-		al.alSourcei(getALId(), AL.AL_DIRECT_FILTER, filt==null?AL.AL_FILTER_NULL:filt.getALId());
+		this.dryFilter = dryFilter;
+		al.alSourcei(getALId(), AL.AL_DIRECT_FILTER, dryFilter == null ? AL.AL_FILTER_NULL : dryFilter.getALId());
 	}
 	
 	/**
@@ -216,12 +221,12 @@ public final class OALSource extends OALObject
 	public void setPosition(float x, float y, float z)
 	{
 		if (autoVelocity)
-			setVelocity(x-position[0],y-position[1],z-position[2]);
+			setVelocity(x - position[0], y - position[1], z - position[2]);
 
 		position[0] = x;
 		position[1] = y;
 		position[2] = z;
-		al.alSourcefv(getALId(),AL.AL_POSITION,position,0);
+		al.alSourcefv(getALId(), AL.AL_POSITION, position, 0);
 	}
 
 	/**
@@ -233,8 +238,8 @@ public final class OALSource extends OALObject
 		if (autoVelocity)
 			setVelocity(f[0]-position[0],f[1]-position[1],f[2]-position[2]);
 
-		System.arraycopy(f,0,position,0,Math.min(f.length,3));
-		al.alSourcefv(getALId(),AL.AL_POSITION,position,0);
+		System.arraycopy(f, 0, position, 0, Math.min(f.length, 3));
+		al.alSourcefv(getALId(), AL.AL_POSITION, position, 0);
 	}
 	
 	/**
@@ -248,7 +253,7 @@ public final class OALSource extends OALObject
 		velocity[0] = x;
 		velocity[1] = y;
 		velocity[2] = z;
-		al.alSourcefv(getALId(),AL.AL_VELOCITY,velocity,0);
+		al.alSourcefv(getALId(), AL.AL_VELOCITY, velocity, 0);
 	}
 
 	/**
@@ -258,7 +263,7 @@ public final class OALSource extends OALObject
 	public void setVelocity(float[] f)
 	{
 		System.arraycopy(f,0,velocity,0,Math.min(f.length,3));
-		al.alSourcefv(getALId(),AL.AL_VELOCITY,velocity,0);
+		al.alSourcefv(getALId(), AL.AL_VELOCITY, velocity, 0);
 	}
 		
 	/**
@@ -272,7 +277,7 @@ public final class OALSource extends OALObject
 		direction[0] = x;
 		direction[1] = y;
 		direction[2] = z;
-		al.alSourcefv(getALId(),AL.AL_DIRECTION,direction,0);
+		al.alSourcefv(getALId(), AL.AL_DIRECTION, direction, 0);
 	}
 
 	/**
@@ -281,8 +286,8 @@ public final class OALSource extends OALObject
 	 */
 	public void setDirection(float[] f)
 	{
-		System.arraycopy(f,0,direction,0,Math.min(f.length,3));
-		al.alSourcefv(getALId(),AL.AL_DIRECTION,direction,0);
+		System.arraycopy(f, 0, direction, 0, Math.min(f.length, 3));
+		al.alSourcefv(getALId(), AL.AL_DIRECTION, direction, 0);
 	}
 	
 	/**
@@ -292,7 +297,7 @@ public final class OALSource extends OALObject
 	public void setGain(float f)
 	{
 		gain = RMath.clampValue(f, 0f, 1f);
-		al.alSourcef(getALId(),AL.AL_GAIN,gain);
+		al.alSourcef(getALId(), AL.AL_GAIN, gain);
 	}
 
 	/**
@@ -303,7 +308,7 @@ public final class OALSource extends OALObject
 	public void setMinGain(float f)
 	{
 		minGain = RMath.clampValue(f, 0f, 1f);
-		al.alSourcef(getALId(),AL.AL_MIN_GAIN, minGain);
+		al.alSourcef(getALId(), AL.AL_MIN_GAIN, minGain);
 	}
 
 	/**
@@ -314,7 +319,7 @@ public final class OALSource extends OALObject
 	public void setMaxGain(float f)
 	{
 		maxGain = RMath.clampValue(f, 0f, 1f);
-		al.alSourcef(getALId(),AL.AL_MAX_GAIN, maxGain);
+		al.alSourcef(getALId(), AL.AL_MAX_GAIN, maxGain);
 	}
 
 	/**
@@ -334,7 +339,7 @@ public final class OALSource extends OALObject
 	 */
 	public void setPitchUsingSemitones(int semitones)
 	{
-		setPitchUsingCents(semitones*100);
+		setPitchUsingCents(semitones * 100);
 	}
 	
 	/**
@@ -344,7 +349,7 @@ public final class OALSource extends OALObject
 	 */
 	public void setPitchUsingCents(int cents)
 	{
-		setPitch((float)(Math.pow(2, cents/1200.0)));
+		setPitch((float)(Math.pow(2, cents / 1200.0)));
 	}
 
 	/**
@@ -354,7 +359,7 @@ public final class OALSource extends OALObject
 	public void setRolloff(float f)
 	{
 		rolloff = Math.max(0, f);
-		al.alSourcef(getALId(),AL.AL_ROLLOFF_FACTOR,rolloff);
+		al.alSourcef(getALId(), AL.AL_ROLLOFF_FACTOR, rolloff);
 	}
 
 	/**
@@ -423,7 +428,7 @@ public final class OALSource extends OALObject
 	public void setLooping(boolean loop)
 	{
 		looping = loop;
-		al.alSourcei(getALId(),AL.AL_LOOPING,looping?AL.AL_TRUE:AL.AL_FALSE);
+		al.alSourcei(getALId(), AL.AL_LOOPING, looping ? AL.AL_TRUE : AL.AL_FALSE);
 	}
 	
 	/**
@@ -432,7 +437,7 @@ public final class OALSource extends OALObject
 	public void setRelative(boolean r)
 	{
 		relative = r;
-		al.alSourcei(getALId(),AL.AL_SOURCE_RELATIVE,relative?AL.AL_TRUE:AL.AL_FALSE);
+		al.alSourcei(getALId(), AL.AL_SOURCE_RELATIVE, relative ? AL.AL_TRUE : AL.AL_FALSE);
 	}
 
 	/**
@@ -520,7 +525,7 @@ public final class OALSource extends OALObject
 
 	public OALFilter getFilter()
 	{
-		return directFilter;
+		return dryFilter;
 	}
 	
 	/**
@@ -529,7 +534,7 @@ public final class OALSource extends OALObject
 	 */
 	public synchronized OALBuffer dequeueBuffer()
 	{
-		OALBuffer out = boundBufferQueue.dequeue();
+		OALBuffer out = bufferQueue.dequeue();
 		if (out != null)
 		{
 			STATE_DEQUEUE[0] = out.getALId();
@@ -546,9 +551,9 @@ public final class OALSource extends OALObject
 	 */
 	public synchronized OALBuffer[] dequeueAllBuffers()
 	{
-		OALBuffer[] out = new OALBuffer[boundBufferQueue.size()];
+		OALBuffer[] out = new OALBuffer[bufferQueue.size()];
 		int i = 0;
-		while (!boundBufferQueue.isEmpty())
+		while (!bufferQueue.isEmpty())
 			out[i++] = dequeueBuffer();
 		return out;
 	}
@@ -567,7 +572,7 @@ public final class OALSource extends OALObject
 	 */
 	public OALBuffer peekBuffer()
 	{
-		return boundBufferQueue.head();
+		return bufferQueue.head();
 	}
 	
 	/**
@@ -575,7 +580,7 @@ public final class OALSource extends OALObject
 	 */
 	public synchronized void enqueueBuffer(OALBuffer b)
 	{
-		if (boundBuffer != null)
+		if (buffer != null)
 			setBuffer(null);
 		if (b != null)
 		{
@@ -583,7 +588,7 @@ public final class OALSource extends OALObject
 			clearError();
 			al.alSourceQueueBuffers(getALId(), 1, STATE_ENQUEUE, 0);
 			errorCheck(this);
-			boundBufferQueue.add(b);
+			bufferQueue.add(b);
 			fireSourceBufferEnqueuedEvent(this, b);
 		}
 	}
@@ -597,17 +602,17 @@ public final class OALSource extends OALObject
 	 */
 	public synchronized void setBuffer(OALBuffer b)
 	{
-		if (!boundBufferQueue.isEmpty())
+		if (!bufferQueue.isEmpty())
 			dequeueAllBuffers();
 		if (b == null)
 		{
 			al.alSourcei(getALId(), AL.AL_BUFFER, 0);
-			boundBuffer = null;
+			buffer = null;
 		}
 		else
 		{
 			al.alSourcei(getALId(), AL.AL_BUFFER, b.getALId());
-			boundBuffer = b;
+			buffer = b;
 		}
 	}
 
@@ -717,7 +722,7 @@ public final class OALSource extends OALObject
 	public void waitForEnd()
 	{
 		while (isPlaying())
-			try {Thread.sleep(1);	} catch (InterruptedException e) {}
+			Common.sleep(1);
 	}
 	
 	/** 
@@ -795,7 +800,7 @@ public final class OALSource extends OALObject
 	/** Is this Source bound to a Buffer object? */
 	public boolean isBoundToABuffer()
 	{
-		return !boundBufferQueue.isEmpty() || boundBuffer != null;
+		return !bufferQueue.isEmpty() || buffer != null;
 	}
 	
 	/**
@@ -803,7 +808,7 @@ public final class OALSource extends OALObject
 	 */
 	protected final int getState()
 	{
-		al.alGetSourcei(getALId(),AL.AL_SOURCE_STATE,STATE_BUFFER,0);
+		al.alGetSourcei(getALId(), AL.AL_SOURCE_STATE, STATE_BUFFER, 0);
 		return STATE_BUFFER[0];		
 	}
 
@@ -826,7 +831,7 @@ public final class OALSource extends OALObject
 		contextRef.sourceRefs.remove(this);
 		int[] STATE_NUMBER = new int[1];
 		STATE_NUMBER[0] = getALId();
-		al.alDeleteSources(1,STATE_NUMBER,0);
+		al.alDeleteSources(1, STATE_NUMBER, 0);
 	}
 	
 	@Override
@@ -840,10 +845,10 @@ public final class OALSource extends OALObject
 		StringBuilder sb = new StringBuilder();
 		sb.append("Source ");
 		sb.append(getALId()+" ");
-		if (boundBufferQueue.size() > 0)
-			sb.append(boundBufferQueue.toString());
-		else if (boundBuffer != null)
-			sb.append(boundBuffer.toString());
+		if (bufferQueue.size() > 0)
+			sb.append(bufferQueue.toString());
+		else if (buffer != null)
+			sb.append(buffer.toString());
 		return sb.toString();
 	}
 

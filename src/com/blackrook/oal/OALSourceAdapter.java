@@ -18,30 +18,37 @@ public class OALSourceAdapter implements OALSourceListener
 	@Override
 	public void sourceBufferDequeued(OALSource source, OALBuffer buffer)
 	{
+		// Do nothing.
 	}
 
 	@Override
 	public void sourceBufferEnqueued(OALSource source, OALBuffer buffer)
 	{
+		// Do nothing.
 	}
 
 	@Override
 	public void sourcePaused(OALSource source)
 	{
+		// Do nothing.
 	}
 
 	@Override
 	public void sourcePlayed(OALSource source)
 	{
+		// Do nothing.
 	}
 
 	@Override
 	public void sourceRewound(OALSource source)
 	{
+		// Do nothing.
 	}
 
 	@Override
 	public void sourceStopped(OALSource source)
 	{
+		// Do nothing.
 	}
+	
 }

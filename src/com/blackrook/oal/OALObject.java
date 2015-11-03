@@ -24,7 +24,7 @@ public abstract class OALObject
 	protected ALC alc;
 	
 	/** This object's ALId. */
-	private int ALId;
+	private int alId;
 	/** Was this object allocated? */
 	private boolean allocated;
 
@@ -35,25 +35,30 @@ public abstract class OALObject
 	{
 		this.al = al;
 		this.alc = alc;
-		ALId = -1;
-		ALId = alloc();
+		alId = -1;
+		alId = alloc();
 	}
 	
 	private final int alloc() throws SoundException 
-	{clearError(); int a = allocate(); allocated = true; return a;}
+	{
+		clearError(); 
+		int a = allocate(); 
+		allocated = true; 
+		return a;
+	}
 
 	/**
 	 * Returns this OALObject's OpenAL object id.
 	 */
 	public final int getALId()
 	{
-		return ALId;
+		return alId;
 	}
 
 	@Override
 	public int hashCode()
 	{
-		return ALId;
+		return alId;
 	}
 
 	/**

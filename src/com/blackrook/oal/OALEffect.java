@@ -31,7 +31,7 @@ public abstract class OALEffect extends OALObject
 	{
 		int[] STATE_NUMBER = new int[1];
 		al.alGetError();
-		al.alGenEffects(1,STATE_NUMBER,0);
+		al.alGenEffects(1, STATE_NUMBER, 0);
 		errorCheck(this);
 		return STATE_NUMBER[0];
 	}

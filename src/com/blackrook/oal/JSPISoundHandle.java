@@ -184,17 +184,14 @@ public class JSPISoundHandle
 		Decoder()
 		{
 			decodedAudioFormat = new AudioFormat(
-					(audioFormat.getSampleSizeInBits() == 8) ?
-							AudioFormat.Encoding.PCM_UNSIGNED :
-							AudioFormat.Encoding.PCM_SIGNED, 
-					audioFormat.getSampleRate(), 
-					audioFormat.getSampleSizeInBits() != AudioSystem.NOT_SPECIFIED ? 
-							audioFormat.getSampleSizeInBits() : 
-							16, 
-					audioFormat.getChannels(),
-					audioFormat.getChannels() * 2,
-					audioFormat.getSampleRate(),
-					ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
+				audioFormat.getSampleSizeInBits() == 8 ? AudioFormat.Encoding.PCM_UNSIGNED : AudioFormat.Encoding.PCM_SIGNED, 
+				audioFormat.getSampleRate(), 
+				audioFormat.getSampleSizeInBits() != AudioSystem.NOT_SPECIFIED ? audioFormat.getSampleSizeInBits() : 16, 
+				audioFormat.getChannels(),
+				audioFormat.getChannels() * 2,
+				audioFormat.getSampleRate(),
+				ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN
+			);
 			decodedAudioStream = AudioSystem.getAudioInputStream(decodedAudioFormat, audioStream);
 		}
 		

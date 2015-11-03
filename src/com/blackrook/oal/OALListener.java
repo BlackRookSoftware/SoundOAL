@@ -111,7 +111,7 @@ public class OALListener
 	public void setFacing(float x, float y, float z)
 	{
 		orientationFacing.set(x,y,z);
-		al.alListenerfv(AL.AL_ORIENTATION,new float[]{
+		al.alListenerfv(AL.AL_ORIENTATION, new float[]{
 			(float)orientationFacing.x, (float)orientationFacing.y, (float)orientationFacing.z, 
 			(float)orientationUp.x, (float)orientationUp.y, (float)orientationUp.z}, 
 			0);
@@ -126,7 +126,7 @@ public class OALListener
 	public void setTop(float x, float y, float z)
 	{
 		orientationUp.set(x,y,z);
-		al.alListenerfv(AL.AL_ORIENTATION,new float[]{
+		al.alListenerfv(AL.AL_ORIENTATION, new float[]{
 			(float)orientationFacing.x, (float)orientationFacing.y, (float)orientationFacing.z, 
 			(float)orientationUp.x, (float)orientationUp.y, (float)orientationUp.z}, 
 			0);
@@ -139,7 +139,7 @@ public class OALListener
 	public void setGain(float f)
 	{
 		gain = f;
-		al.alListenerf(AL.AL_GAIN,gain);
+		al.alListenerf(AL.AL_GAIN, gain);
 	}
 	
 	/**

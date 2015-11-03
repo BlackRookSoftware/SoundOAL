@@ -45,10 +45,8 @@ import com.jogamp.openal.ALFactory;
 public final class OALSystem
 {
 	private static boolean ONE_SPAWNED = false;
-
-	public static final String
-	DEVICE_DEFAULT = "Default",
-	CONTEXT_DEFAULT = "Default";
+	public static final String DEVICE_DEFAULT = "Default";
+	public static final String CONTEXT_DEFAULT = "Default";
 	
 	/** System AL instance. */
 	private AL al;
@@ -61,7 +59,7 @@ public final class OALSystem
 	private HashMap<String,Device> deviceTable;
 	/** Current context. */
 	private Context currentDeviceContext;
-
+	
 	/**
 	 * Creates a new SoundSystem with the current device as a new sound device and 
 	 * the current context as its first context, made current.
@@ -86,15 +84,25 @@ public final class OALSystem
 		al = ALFactory.getAL();
 		alc = ALFactory.getALC();
 		
-		deviceTable = new HashMap<String,Device>(3);
+		deviceTable = new HashMap<String, Device>(3);
 		
 		createNewDevice(deviceName);
 		if (deviceName == null)
 			deviceName = DEVICE_DEFAULT;
-		createNewContext(deviceName,CONTEXT_DEFAULT);
-		makeContextCurrent(deviceName,CONTEXT_DEFAULT);
+		createNewContext(deviceName, CONTEXT_DEFAULT);
+		makeContextCurrent(deviceName, CONTEXT_DEFAULT);
 		
-		listener = new OALListener(al,alc);
+		listener = new OALListener(al, alc);
+	}
+	
+	AL getAL()
+	{
+		return al;
+	}
+	
+	ALC getALC() 
+	{
+		return alc;
 	}
 
 	/**
@@ -112,7 +120,7 @@ public final class OALSystem
 		Device d = new Device(alcd);
 		if (deviceName == null)
 			deviceName = DEVICE_DEFAULT;
-		deviceTable.put(deviceName,d);
+		deviceTable.put(deviceName, d);
 	}
 	
 	/**
@@ -140,7 +148,7 @@ public final class OALSystem
 	 */
 	public void createNewContext(String deviceName, String contextName)
 	{
-		createNewContext(deviceName,contextName,0);
+		createNewContext(deviceName, contextName, 0);
 	}
 
 	/**
@@ -242,9 +250,8 @@ public final class OALSystem
 		if (currentDeviceContext == null)
 			throw new SoundSystemException("Cannot create Source for current context: no context.");
 		
-		OALSource s = new OALSource(al,alc,autoVelocity);
+		OALSource s = new OALSource(al, alc, autoVelocity, 2);
 		s.setContextRef(currentDeviceContext);
-		s.setAmountOfAuxEffectSlots(2);
 		currentDeviceContext.sourceRefs.add(s);
 		return s;
 	}
@@ -271,9 +278,35 @@ public final class OALSystem
 	 */
 	public OALBuffer createBuffer()
 	{
-		return new OALBuffer(al,alc);
+		return new OALBuffer(al, alc);
 	}
 	
+	/**
+	 * Allocates a new buffer for loading data into. Buffers are independant
+	 * of device context. 
+	 * @return a set of newly allocated buffers.
+	 * @throws SoundException if the Buffer can't be allocated somehow.
+	 */
+	public OALBuffer[] createBuffers(int amount)
+	{
+		OALBuffer[] out = new OALBuffer[amount];
+		for (int i = 0; i < amount; i++)
+			out[i] = createBuffer();
+		return out;
+	}
+	
+	/**
+	 * Convenience method for checking for an OpenAL error and throwing a SoundException
+	 * if an error is raised. 
+	 */
+	public void getError()
+	{
+		int error = al.alGetError();
+		if (error != AL.AL_NO_ERROR)
+			throw new SoundException("OpenAL returned \""+al.alGetString(error)+"\".");
+	}
+	
+
 	/**
 	 * Allocates a new buffer with data loaded into it. All of the sound data
 	 * readable by the SoundData instance is read into the buffer.
@@ -287,7 +320,7 @@ public final class OALSystem
 	 */
 	public OALBuffer createBuffer(JSPISoundHandle data) throws IOException
 	{
-		return new OALBuffer(al,alc,data);
+		return new OALBuffer(al, alc, data);
 	}
 	
 	/**
@@ -303,19 +336,7 @@ public final class OALSystem
 	 */
 	public OALBuffer createBuffer(JSPISoundHandle.Decoder dataDecoder) throws IOException
 	{
-		return new OALBuffer(al,alc,dataDecoder);
-	}
-	
-	/**
-	 * Allocates multiple buffers at once.
-	 * Buffers are independent of device context. 
-	 * @param numBuffers the number of Buffer objects to allocate.
-	 * @return an array of Buffers that were allocated.
-	 * @throws SoundException	if the Buffers can't be allocated somehow.
-	 */
-	public OALBuffer[] createBuffers(int numBuffers)
-	{
-		return OALBuffer.allocateMultipleBuffers(al,alc,numBuffers);
+		return new OALBuffer(al, alc, dataDecoder);
 	}
 	
 	/**
@@ -327,9 +348,9 @@ public final class OALSystem
 	 * @return a new AuxEffectSlot object.
 	 * @throws SoundException	if the slot can't be allocated somehow.
 	 */
-	public OALAuxEffectSlot createEffectSlot()
+	public OALEffectSlot createEffectSlot()
 	{
-		return new OALAuxEffectSlot(al,alc);
+		return new OALEffectSlot(al, alc);
 	}
 	
 	/**
@@ -378,7 +399,7 @@ public final class OALSystem
 	 */
 	public AutowahEffect createAutowahEffect()
 	{
-		return new AutowahEffect(al,alc);
+		return new AutowahEffect(al, alc);
 	}
 	
 	/**
@@ -387,7 +408,7 @@ public final class OALSystem
 	 */
 	public ChorusEffect createChorusEffect()
 	{
-		return new ChorusEffect(al,alc);
+		return new ChorusEffect(al, alc);
 	}
 	
 	/**
@@ -396,7 +417,7 @@ public final class OALSystem
 	 */
 	public CompressorEffect createCompressorEffect()
 	{
-		return new CompressorEffect(al,alc);
+		return new CompressorEffect(al, alc);
 	}
 	
 	/**
@@ -405,7 +426,7 @@ public final class OALSystem
 	 */
 	public DistortionEffect createDistortionEffect()
 	{
-		return new DistortionEffect(al,alc);
+		return new DistortionEffect(al, alc);
 	}
 	
 	/**
@@ -414,7 +435,7 @@ public final class OALSystem
 	 */
 	public EchoEffect createEchoEffect()
 	{
-		return new EchoEffect(al,alc);
+		return new EchoEffect(al, alc);
 	}
 	
 	/**
@@ -423,7 +444,7 @@ public final class OALSystem
 	 */
 	public EqualizerEffect createEqualizerEffect()
 	{
-		return new EqualizerEffect(al,alc);
+		return new EqualizerEffect(al, alc);
 	}
 	
 	/**
@@ -432,7 +453,7 @@ public final class OALSystem
 	 */
 	public FlangerEffect createFlangerEffect()
 	{
-		return new FlangerEffect(al,alc);
+		return new FlangerEffect(al, alc);
 	}
 	
 	/**
@@ -441,7 +462,7 @@ public final class OALSystem
 	 */
 	public FrequencyShiftEffect createFrequencyShiftEffect()
 	{
-		return new FrequencyShiftEffect(al,alc);
+		return new FrequencyShiftEffect(al, alc);
 	}
 	
 	/**
@@ -450,7 +471,7 @@ public final class OALSystem
 	 */
 	public PitchShiftEffect createPitchShiftEffect()
 	{
-		return new PitchShiftEffect(al,alc);
+		return new PitchShiftEffect(al, alc);
 	}
 	
 	/**
@@ -459,7 +480,7 @@ public final class OALSystem
 	 */
 	public ReverbEffect createReverbEffect()
 	{
-		return new ReverbEffect(al,alc);
+		return new ReverbEffect(al, alc);
 	}
 	
 	/**
@@ -468,7 +489,7 @@ public final class OALSystem
 	 */
 	public RingModulatorEffect createRingModulatorEffect()
 	{
-		return new RingModulatorEffect(al,alc);
+		return new RingModulatorEffect(al, alc);
 	}
 	
 	/**
@@ -477,7 +498,7 @@ public final class OALSystem
 	 */
 	public VocalMorpherEffect createVocalMorpherEffect()
 	{
-		return new VocalMorpherEffect(al,alc);
+		return new VocalMorpherEffect(al, alc);
 	}
 	
 	/**
@@ -508,7 +529,7 @@ public final class OALSystem
 	 */
 	public HighPassFilter createHighPassFilter()
 	{
-		return new HighPassFilter(al,alc);
+		return new HighPassFilter(al, alc);
 	}
 	
 	/**
@@ -517,7 +538,7 @@ public final class OALSystem
 	 */
 	public LowPassFilter createLowPassFilter()
 	{
-		return new LowPassFilter(al,alc);
+		return new LowPassFilter(al, alc);
 	}
 	
 	/**
@@ -526,7 +547,7 @@ public final class OALSystem
 	 */
 	public BandPassFilter createBandPassFilter()
 	{
-		return new BandPassFilter(al,alc);
+		return new BandPassFilter(al, alc);
 	}
 	
 	/**
@@ -644,7 +665,6 @@ public final class OALSystem
 	
 	/**
 	 * Context encapsulator.
-	 * @author Matthew Tropiano
 	 */
 	public final class Context
 	{
@@ -667,7 +687,6 @@ public final class OALSystem
 
 	/**
 	 * Device encapsulator.
-	 * @author Matthew Tropiano
 	 */
 	private final class Device extends HashMap<String,Context>
 	{

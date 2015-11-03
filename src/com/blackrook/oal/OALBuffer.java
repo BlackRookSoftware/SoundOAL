@@ -25,14 +25,13 @@ import com.jogamp.openal.ALC;
  */
 public final class OALBuffer extends OALObject
 {
-	public static final int
-	FREQ_8KHZ =		8000,
-	FREQ_11KHZ = 	11025,
-	FREQ_16KHZ = 	16000,
-	FREQ_22KHZ = 	22050,
-	FREQ_32KHZ = 	32000,
-	FREQ_44KHZ = 	44100,
-	FREQ_48KHZ = 	48000;
+	public static final int FREQ_8KHZ =	8000;
+	public static final int FREQ_11KHZ = 11025;
+	public static final int FREQ_16KHZ = 16000;
+	public static final int FREQ_22KHZ = 22050;
+	public static final int FREQ_32KHZ = 32000;
+	public static final int FREQ_44KHZ = 44100;
+	public static final int FREQ_48KHZ = 48000;
 	
 	/** The sizes of each of the buffers. */
 	protected int bufferSize;
@@ -96,19 +95,11 @@ public final class OALBuffer extends OALObject
 		setFormatByChannelsAndBits(format.getChannels(), format.getSampleSizeInBits());
 	}
 	
-	public static OALBuffer[] allocateMultipleBuffers(AL al, ALC alc, int numBuffers)
-	{
-		OALBuffer[] out = new OALBuffer[numBuffers];
-		for (int i = 0; i < numBuffers; i++)
-			out[i] = new OALBuffer(al,alc);
-		return out;
-	}
-	
 	protected final int allocate()
 	{
 		int[] STATE_NUMBER = new int[1];
 		al.alGetError();
-		al.alGenBuffers(1,STATE_NUMBER,0);
+		al.alGenBuffers(1, STATE_NUMBER, 0);
 		errorCheck(this);
 		return STATE_NUMBER[0];
 	}
