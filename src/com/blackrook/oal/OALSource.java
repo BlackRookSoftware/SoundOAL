@@ -147,23 +147,6 @@ public final class OALSource extends OALObject
 	}
 	
 	/**
-	 * Sets this source's Context reference.
-	 * @param context
-	 */
-	public void setContextRef(OALSystem.Context context)
-	{
-		contextRef = context;
-	}
-	
-	/**
-	 * Sets the amount of effect slots on this Source according to the hardware limit.
-	 * @param numSlots	the amount of slots.
-	 */
-	public void setAmountOfAuxEffectSlots(int numSlots)
-	{
-	}
-	
-	/**
 	 * Sets an auxiliary effect in a particular slot (nullifies the filter slot).
 	 * @param slot	the slot to add this to. 
 	 * @param eSlot	the effect slot to add (can be null).
@@ -596,9 +579,10 @@ public final class OALSource extends OALObject
 	/**
 	 * Enqueues a single buffer on this Source, making sure that it is the only
 	 * Buffer enqueued by it. 
+	 * If <code>null</code> is provided, this clears the buffer assignment.
 	 * This does NOT check if the Source is currently playing before dequeuing
 	 * the bound buffers.
-	 * @param b		the Buffer to bind to this Source.
+	 * @param b	the Buffer to bind to this Source.
 	 */
 	public synchronized void setBuffer(OALBuffer b)
 	{
@@ -627,7 +611,8 @@ public final class OALSource extends OALObject
 	}
 	
 	/**
-	 * How many buffers were processed on this source?
+	 * Gets many buffers were processed on this source.
+	 * @return the amount of buffers processed.
 	 */
 	public int getProcessedBufferCount()
 	{
@@ -665,7 +650,7 @@ public final class OALSource extends OALObject
 	/**
 	 * Fires a sourcePlayed(). 
 	 */
-	public void fireSourcePlayedEvent(OALSource source)
+	private void fireSourcePlayedEvent(OALSource source)
 	{
 		for (OALSourceListener sl : sourceListeners)
 			sl.sourcePlayed(source);
@@ -674,7 +659,7 @@ public final class OALSource extends OALObject
 	/**
 	 * Fires a sourcePaused(). 
 	 */
-	public void fireSourcePausedEvent(OALSource source)
+	private void fireSourcePausedEvent(OALSource source)
 	{
 		for (OALSourceListener sl : sourceListeners)
 			sl.sourcePaused(source);
@@ -683,7 +668,7 @@ public final class OALSource extends OALObject
 	/**
 	 * Fires a sourceRewound(). 
 	 */
-	public void fireSourceRewoundEvent(OALSource source)
+	private void fireSourceRewoundEvent(OALSource source)
 	{
 		for (OALSourceListener sl : sourceListeners)
 			sl.sourceRewound(source);
@@ -692,7 +677,7 @@ public final class OALSource extends OALObject
 	/**
 	 * Fires a sourceStopped(). 
 	 */
-	public void fireSourceStoppedEvent(OALSource source)
+	private void fireSourceStoppedEvent(OALSource source)
 	{
 		for (OALSourceListener sl : sourceListeners)
 			sl.sourceStopped(source);
@@ -701,7 +686,7 @@ public final class OALSource extends OALObject
 	/**
 	 * Fires a sourceBufferDequeued(). 
 	 */
-	public void fireSourceBufferDequeuedEvent(OALSource source, OALBuffer buffer)
+	private void fireSourceBufferDequeuedEvent(OALSource source, OALBuffer buffer)
 	{
 		for (OALSourceListener sl : sourceListeners)
 			sl.sourceBufferDequeued(source, buffer);
@@ -710,7 +695,7 @@ public final class OALSource extends OALObject
 	/**
 	 * Fires a sourceBufferEnqueued(). 
 	 */
-	public void fireSourceBufferEnqueuedEvent(OALSource source, OALBuffer buffer)
+	private void fireSourceBufferEnqueuedEvent(OALSource source, OALBuffer buffer)
 	{
 		for (OALSourceListener sl : sourceListeners)
 			sl.sourceBufferEnqueued(source, buffer);

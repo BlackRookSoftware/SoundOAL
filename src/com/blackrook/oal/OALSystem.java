@@ -251,7 +251,6 @@ public final class OALSystem
 			throw new SoundSystemException("Cannot create Source for current context: no context.");
 		
 		OALSource s = new OALSource(al, alc, autoVelocity, 2);
-		s.setContextRef(currentDeviceContext);
 		currentDeviceContext.sourceRefs.add(s);
 		return s;
 	}

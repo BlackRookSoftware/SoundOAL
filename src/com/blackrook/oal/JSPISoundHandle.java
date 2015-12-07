@@ -18,12 +18,14 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import com.blackrook.commons.Common;
+
 /**
  * Sound resource abstraction.
  * Wraps Java Sound SPI structures for ease of creating handles to decodable sound.
  * @author Matthew Tropiano
  */
-public class JSPISoundHandle
+public class JSPISoundHandle implements Closeable
 {
 	/** Name of this data stream. */
 	private String dataName;
@@ -110,7 +112,7 @@ public class JSPISoundHandle
 	/** Closes this file on cleanup. */
 	public void finalize() throws Throwable
 	{
-		try {close();	} catch (Exception e) {}
+		Common.close(this);
 		super.finalize();
 	}
 
