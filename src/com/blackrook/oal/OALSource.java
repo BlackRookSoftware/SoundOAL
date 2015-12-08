@@ -79,9 +79,6 @@ public final class OALSource extends OALObject
 	/** Direct filter bound to this source. */
 	private OALFilter dryFilter;
 	
-	/** The context that this Source belongs to. */
-	private OALSystem.Context contextRef;
-	
 	/** Source listeners. */
 	private List<OALSourceListener> sourceListeners; 
 	
@@ -123,6 +120,19 @@ public final class OALSource extends OALObject
 		return STATE_NUMBER[0];
 	}
 	
+	/**
+	 * Destroys this sound source (BUT NOT ATTACHED BUFFER(s)).
+	 */
+	@Override
+	protected final void free()
+	{
+		if (isPlaying()) stop();
+		dequeueAllBuffers();
+		int[] STATE_NUMBER = new int[1];
+		STATE_NUMBER[0] = getALId();
+		al.alDeleteSources(1, STATE_NUMBER, 0);
+	}
+
 	/**
 	 * Sets this Source's settings to defaults, and releases all buffers bound to it.
 	 */
@@ -811,20 +821,6 @@ public final class OALSource extends OALObject
 		autoVelocity = autovel;
 	}
 
-	/**
-	 * Destroys this sound source (BUT NOT ATTACHED BUFFER(s)).
-	 */
-	@Override
-	protected final void free()
-	{
-		if (isPlaying()) stop();
-		dequeueAllBuffers();
-		contextRef.sourceRefs.remove(this);
-		int[] STATE_NUMBER = new int[1];
-		STATE_NUMBER[0] = getALId();
-		al.alDeleteSources(1, STATE_NUMBER, 0);
-	}
-	
 	@Override
 	public int hashCode()
 	{
