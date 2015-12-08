@@ -9,9 +9,8 @@ package com.blackrook.oal.effect;
 
 import com.blackrook.commons.math.RMath;
 import com.blackrook.oal.OALEffect;
-import com.blackrook.oal.enums.EffectType;
-import com.jogamp.openal.AL;
-import com.jogamp.openal.ALC;
+import com.blackrook.oal.OALSystem;
+import com.jogamp.openal.ALExt;
 
 /**
  * Pitch shifter effect for sources.
@@ -24,9 +23,9 @@ public class PitchShiftEffect extends OALEffect
 	/** Pitch shifter fine tuning in cents. */
 	protected int fine;
 	
-	public PitchShiftEffect(AL al, ALC alc)
+	public PitchShiftEffect(OALSystem system)
 	{
-		super(al,alc,EffectType.PITCH_SHIFT);
+		super(system, ALExt.AL_EFFECT_PITCH_SHIFTER);
 		setCoarseTuning(12);
 		setFineTuning(0);
 	}
@@ -47,14 +46,14 @@ public class PitchShiftEffect extends OALEffect
 	public final void setCoarseTuning(int coarse)
 	{
 		this.coarse = coarse;
-		al.alEffecti(getALId(), AL.AL_PITCH_SHIFTER_COARSE_TUNE, RMath.clampValue(coarse, -12, 12));
+		alext.alEffecti(getALId(), ALExt.AL_PITCH_SHIFTER_COARSE_TUNE, RMath.clampValue(coarse, -12, 12));
 	}
 
 	/** Pitch shifter fine tuning in cents (-50 to 50). */
 	public final void setFineTuning(int fine)
 	{
 		this.fine = fine;
-		al.alEffecti(getALId(), AL.AL_PITCH_SHIFTER_FINE_TUNE, RMath.clampValue(fine, -50, 50));
+		alext.alEffecti(getALId(), ALExt.AL_PITCH_SHIFTER_FINE_TUNE, RMath.clampValue(fine, -50, 50));
 	}
 	
 }

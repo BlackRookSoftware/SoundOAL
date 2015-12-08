@@ -9,9 +9,8 @@ package com.blackrook.oal.effect;
 
 import com.blackrook.commons.math.RMath;
 import com.blackrook.oal.OALEffect;
-import com.blackrook.oal.enums.EffectType;
-import com.jogamp.openal.AL;
-import com.jogamp.openal.ALC;
+import com.blackrook.oal.OALSystem;
+import com.jogamp.openal.ALExt;
 
 /**
  * Chorus effect for sound sources.
@@ -22,8 +21,8 @@ public class ChorusEffect extends OALEffect
 	/** WaveForm type enumeration. */
 	public static enum WaveForm
 	{
-		SINUSOID(AL.AL_CHORUS_WAVEFORM_SINUSOID),
-		TRIANGLE(AL.AL_CHORUS_WAVEFORM_TRIANGLE);
+		SINUSOID(ALExt.AL_CHORUS_WAVEFORM_SINUSOID),
+		TRIANGLE(ALExt.AL_CHORUS_WAVEFORM_TRIANGLE);
 		
 		final int alVal;
 		private WaveForm(int alVal) {this.alVal = alVal;}
@@ -42,9 +41,9 @@ public class ChorusEffect extends OALEffect
 	/** Chorus delay in seconds. */
 	protected float delay;
 	
-	public ChorusEffect(AL al, ALC alc)
+	public ChorusEffect(OALSystem system)
 	{
-		super(al,alc,EffectType.CHORUS);
+		super(system, ALExt.AL_EFFECT_CHORUS);
 		setWaveForm(WaveForm.TRIANGLE);
 		setPhase(90);
 		setRate(1.1f);
@@ -107,7 +106,7 @@ public class ChorusEffect extends OALEffect
 	public final void setDelay(float delay)
 	{
 		this.delay = delay;
-		al.alEffectf(getALId(), AL.AL_CHORUS_DELAY, RMath.clampValue(delay, 0.0f, 0.016f));
+		alext.alEffectf(getALId(), ALExt.AL_CHORUS_DELAY, RMath.clampValue(delay, 0.0f, 0.016f));
 	}
 
 	/**
@@ -116,7 +115,7 @@ public class ChorusEffect extends OALEffect
 	public final void setDepth(float depth)
 	{
 		this.depth = depth;
-		al.alEffectf(getALId(), AL.AL_CHORUS_DEPTH, RMath.clampValue(depth, 0.0f, 1.0f));
+		alext.alEffectf(getALId(), ALExt.AL_CHORUS_DEPTH, RMath.clampValue(depth, 0.0f, 1.0f));
 	}
 
 	/**
@@ -125,7 +124,7 @@ public class ChorusEffect extends OALEffect
 	public final void setFeedback(float feedback)
 	{
 		this.feedback = feedback;
-		al.alEffectf(getALId(), AL.AL_CHORUS_FEEDBACK, RMath.clampValue(feedback, -1.0f, 1.0f));
+		alext.alEffectf(getALId(), ALExt.AL_CHORUS_FEEDBACK, RMath.clampValue(feedback, -1.0f, 1.0f));
 	}
 
 	/**
@@ -134,7 +133,7 @@ public class ChorusEffect extends OALEffect
 	public final void setPhase(int phase)
 	{
 		this.phase = phase;
-		al.alEffecti(getALId(), AL.AL_CHORUS_PHASE, RMath.clampValue(phase, -180, 180));
+		alext.alEffecti(getALId(), ALExt.AL_CHORUS_PHASE, RMath.clampValue(phase, -180, 180));
 	}
 
 	/**
@@ -143,7 +142,7 @@ public class ChorusEffect extends OALEffect
 	public final void setRate(float rate)
 	{
 		this.rate = rate;
-		al.alEffectf(getALId(), AL.AL_CHORUS_RATE, RMath.clampValue(rate, 0.0f, 10.0f));
+		alext.alEffectf(getALId(), ALExt.AL_CHORUS_RATE, RMath.clampValue(rate, 0.0f, 10.0f));
 	}
 
 	/**
@@ -153,6 +152,6 @@ public class ChorusEffect extends OALEffect
 	public final void setWaveForm(WaveForm waveForm)
 	{
 		this.waveForm = waveForm;
-		al.alEffecti(getALId(), AL.AL_CHORUS_WAVEFORM, waveForm.alVal);
+		alext.alEffecti(getALId(), ALExt.AL_CHORUS_WAVEFORM, waveForm.alVal);
 	}
 }

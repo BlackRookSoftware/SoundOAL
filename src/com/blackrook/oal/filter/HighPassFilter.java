@@ -8,9 +8,8 @@
 package com.blackrook.oal.filter;
 
 import com.blackrook.oal.OALFilter;
-import com.blackrook.oal.enums.FilterType;
-import com.jogamp.openal.AL;
-import com.jogamp.openal.ALC;
+import com.blackrook.oal.OALSystem;
+import com.jogamp.openal.ALExt;
 
 /**
  * High-pass filter object for high-pass filtering.
@@ -23,11 +22,11 @@ public class HighPassFilter extends OALFilter
 	/** Low-frequency high-pass gain. */
 	protected float gainLF;
 	
-	public HighPassFilter(AL al, ALC alc)
+	public HighPassFilter(OALSystem system)
 	{
-		super(al,alc,FilterType.HIGHPASS);
-		setGain(1);
-		setLFGain(1);
+		super(system, ALExt.AL_FILTER_HIGHPASS);
+		setGain(1f);
+		setLFGain(1f);
 	}
 	
 	/**
@@ -37,7 +36,7 @@ public class HighPassFilter extends OALFilter
 	public void setGain(float gain)
 	{
 		this.gain = gain;
-		al.alFilterf(getALId(), AL.AL_HIGHPASS_GAIN, gain);
+		alext.alFilterf(getALId(), ALExt.AL_HIGHPASS_GAIN, gain);
 	}
 	
 	/**
@@ -55,7 +54,7 @@ public class HighPassFilter extends OALFilter
 	public void setLFGain(float gain)
 	{
 		this.gainLF = gain;
-		al.alFilterf(getALId(), AL.AL_HIGHPASS_GAINLF, gain);
+		alext.alFilterf(getALId(), ALExt.AL_HIGHPASS_GAINLF, gain);
 	}
 	
 	/**

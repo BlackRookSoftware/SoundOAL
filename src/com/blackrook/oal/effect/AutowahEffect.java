@@ -9,9 +9,8 @@ package com.blackrook.oal.effect;
 
 import com.blackrook.commons.math.RMath;
 import com.blackrook.oal.OALEffect;
-import com.blackrook.oal.enums.EffectType;
-import com.jogamp.openal.AL;
-import com.jogamp.openal.ALC;
+import com.blackrook.oal.OALSystem;
+import com.jogamp.openal.ALExt;
 
 /**
  * Autowah effect for sound sources.
@@ -28,9 +27,9 @@ public class AutowahEffect extends OALEffect
 	/** Autowah peak gain. */
 	protected float peakGain;
 
-	public AutowahEffect(AL al, ALC alc)
+	public AutowahEffect(OALSystem system)
 	{
-		super(al,alc,EffectType.AUTOWAH);
+		super(system, ALExt.AL_EFFECT_AUTOWAH);
 		setAttackTime(0.06f);
 		setReleaseTime(0.06f);
 		setResonance(1000);
@@ -65,27 +64,27 @@ public class AutowahEffect extends OALEffect
 	public final void setAttackTime(float attackTime)
 	{
 		this.attackTime = attackTime;
-		al.alEffectf(getALId(), AL.AL_AUTOWAH_ATTACK_TIME, RMath.clampValue(attackTime, 0.0001f, 1.0f));
+		alext.alEffectf(getALId(), ALExt.AL_AUTOWAH_ATTACK_TIME, RMath.clampValue(attackTime, 0.0001f, 1.0f));
 	}
 
 	/** Set autowah peak gain (0.00003 to 31621.0). */
 	public final void setPeakGain(float peakGain)
 	{
 		this.peakGain = peakGain;
-		al.alEffectf(getALId(), AL.AL_AUTOWAH_PEAK_GAIN, RMath.clampValue(peakGain, 0.00003f, 31621.0f));
+		alext.alEffectf(getALId(), ALExt.AL_AUTOWAH_PEAK_GAIN, RMath.clampValue(peakGain, 0.00003f, 31621.0f));
 	}
 
 	/** Set autowah release time in seconds (0.0001 to 1.0). */
 	public final void setReleaseTime(float releaseTime)
 	{
 		this.releaseTime = releaseTime;
-		al.alEffectf(getALId(), AL.AL_AUTOWAH_RELEASE_TIME, RMath.clampValue(releaseTime, 0.0001f, 1.0f));
+		alext.alEffectf(getALId(), ALExt.AL_AUTOWAH_RELEASE_TIME, RMath.clampValue(releaseTime, 0.0001f, 1.0f));
 	}
 
 	/** Set autowah resonance factor (2.0 to 1000.0). */
 	public final void setResonance(float resonance)
 	{
 		this.resonance = resonance;
-		al.alEffectf(getALId(), AL.AL_AUTOWAH_RESONANCE, RMath.clampValue(resonance, 2.0f, 1000.0f));
+		alext.alEffectf(getALId(), ALExt.AL_AUTOWAH_RESONANCE, RMath.clampValue(resonance, 2.0f, 1000.0f));
 	}
 }

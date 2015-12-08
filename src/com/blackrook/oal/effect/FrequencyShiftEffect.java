@@ -9,9 +9,8 @@ package com.blackrook.oal.effect;
 
 import com.blackrook.commons.math.RMath;
 import com.blackrook.oal.OALEffect;
-import com.blackrook.oal.enums.EffectType;
-import com.jogamp.openal.AL;
-import com.jogamp.openal.ALC;
+import com.blackrook.oal.OALSystem;
+import com.jogamp.openal.ALExt;
 
 /**
  * Frequency shift effects for sources.
@@ -22,9 +21,9 @@ public class FrequencyShiftEffect extends OALEffect
 	/** Shift direction enumeration. */
 	public static enum Direction
 	{
-		DOWN(AL.AL_FREQUENCY_SHIFTER_DIRECTION_DOWN),
-		UP(AL.AL_FREQUENCY_SHIFTER_DIRECTION_UP),
-		OFF(AL.AL_FREQUENCY_SHIFTER_DIRECTION_OFF);
+		DOWN(ALExt.AL_FREQUENCY_SHIFTER_DIRECTION_DOWN),
+		UP(ALExt.AL_FREQUENCY_SHIFTER_DIRECTION_UP),
+		OFF(ALExt.AL_FREQUENCY_SHIFTER_DIRECTION_OFF);
 		
 		final int alVal;
 		private Direction(int alVal) {this.alVal = alVal;}
@@ -37,10 +36,10 @@ public class FrequencyShiftEffect extends OALEffect
 	/** Frequency shifter right direction. */
 	protected Direction rightDir;
 	
-	public FrequencyShiftEffect(AL al, ALC alc)
+	public FrequencyShiftEffect(OALSystem system)
 	{
-		super(al,alc,EffectType.FREQUENCY_SHIFT);
-		setFrequency(0);
+		super(system, ALExt.AL_EFFECT_FREQUENCY_SHIFTER);
+		setFrequency(0f);
 		setLeftDirection(Direction.DOWN);
 		setRightDirection(Direction.DOWN);
 	}
@@ -67,7 +66,7 @@ public class FrequencyShiftEffect extends OALEffect
 	public final void setFrequency(float frequency)
 	{
 		this.frequency = frequency;
-		al.alEffectf(getALId(), AL.AL_FREQUENCY_SHIFTER_FREQUENCY, RMath.clampValue(frequency, 0.0f, 24000.0f));
+		alext.alEffectf(getALId(), ALExt.AL_FREQUENCY_SHIFTER_FREQUENCY, RMath.clampValue(frequency, 0.0f, 24000.0f));
 	}
 
 	/** 
@@ -77,7 +76,7 @@ public class FrequencyShiftEffect extends OALEffect
 	public final void setLeftDirection(Direction leftDir)
 	{
 		this.leftDir = leftDir;
-		al.alEffecti(getALId(), AL.AL_FREQUENCY_SHIFTER_LEFT_DIRECTION, leftDir.alVal);
+		alext.alEffecti(getALId(), ALExt.AL_FREQUENCY_SHIFTER_LEFT_DIRECTION, leftDir.alVal);
 	}
 
 	/** 
@@ -87,9 +86,7 @@ public class FrequencyShiftEffect extends OALEffect
 	public final void setRightDirection(Direction rightDir)
 	{
 		this.rightDir = rightDir;
-		al.alEffecti(getALId(), AL.AL_FREQUENCY_SHIFTER_RIGHT_DIRECTION, rightDir.alVal);
+		alext.alEffecti(getALId(), ALExt.AL_FREQUENCY_SHIFTER_RIGHT_DIRECTION, rightDir.alVal);
 	}
-	
-	
 	
 }

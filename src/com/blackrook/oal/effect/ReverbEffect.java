@@ -9,9 +9,9 @@ package com.blackrook.oal.effect;
 
 import com.blackrook.commons.math.RMath;
 import com.blackrook.oal.OALEffect;
-import com.blackrook.oal.enums.EffectType;
+import com.blackrook.oal.OALSystem;
 import com.jogamp.openal.AL;
-import com.jogamp.openal.ALC;
+import com.jogamp.openal.ALExt;
 
 /**
  * Reverb effect for sound and stuff.
@@ -49,11 +49,11 @@ public class ReverbEffect extends OALEffect
 	/**
 	 * Constructs a new ReverbEffect object with default settings. 
 	 */
-	public ReverbEffect(AL al, ALC alc)
+	public ReverbEffect(OALSystem system)
 	{
-		super(al,alc,EffectType.REVERB);
-		setDensity(1);
-		setDiffusion(1);
+		super(system, ALExt.AL_EFFECT_REVERB);
+		setDensity(1f);
+		setDiffusion(1f);
 		setGain(0.32f);
 		setHFGain(0.89f);
 		setDecayTime(1.49f);
@@ -63,7 +63,7 @@ public class ReverbEffect extends OALEffect
 		setLateGain(1.26f);
 		setLateDelay(0.011f);
 		setAirAbsorptionGainHF(0.994f);
-		setRoomRolloffFactor(0);
+		setRoomRolloffFactor(0f);
 		setHFLimit(true);
 	}
 
@@ -149,91 +149,91 @@ public class ReverbEffect extends OALEffect
 	public final void setAirAbsorptionGainHF(float airAbsorptionGainHF)
 	{
 		this.airAbsorptionGainHF = airAbsorptionGainHF;
-		al.alEffectf(getALId(), AL.AL_REVERB_AIR_ABSORPTION_GAINHF, RMath.clampValue(airAbsorptionGainHF, 0.892f, 1.0f));
+		alext.alEffectf(getALId(), ALExt.AL_REVERB_AIR_ABSORPTION_GAINHF, RMath.clampValue(airAbsorptionGainHF, 0.892f, 1.0f));
 	}
 
 	/** Get reverb high-frequency ratio (0.1 to 2.0). */
 	public final void setDecayHFRatio(float decayHFRatio)
 	{
 		this.decayHFRatio = decayHFRatio;
-		al.alEffectf(getALId(), AL.AL_REVERB_DECAY_HFRATIO, RMath.clampValue(decayHFRatio, 0.1f, 2.0f));
+		alext.alEffectf(getALId(), ALExt.AL_REVERB_DECAY_HFRATIO, RMath.clampValue(decayHFRatio, 0.1f, 2.0f));
 	}
 
 	/** Set reverb decay time in seconds (0.1 to 20.0). */
 	public final void setDecayTime(float decayTime)
 	{
 		this.decayTime = decayTime;
-		al.alEffectf(getALId(), AL.AL_REVERB_DECAY_TIME, RMath.clampValue(decayTime, 0.1f, 20.0f));
+		alext.alEffectf(getALId(), ALExt.AL_REVERB_DECAY_TIME, RMath.clampValue(decayTime, 0.1f, 20.0f));
 	}
 
 	/** Set reverb density factor (0.0 to 1.0). */
 	public final void setDensity(float density)
 	{
 		this.density = density;
-		al.alEffectf(getALId(), AL.AL_REVERB_DENSITY, RMath.clampValue(density, 0.0f, 1.0f));
+		alext.alEffectf(getALId(), ALExt.AL_REVERB_DENSITY, RMath.clampValue(density, 0.0f, 1.0f));
 	}
 
 	/** Set reverb diffusion factor (0.0 to 1.0). */
 	public final void setDiffusion(float diffusion)
 	{
 		this.diffusion = diffusion;
-		al.alEffectf(getALId(), AL.AL_REVERB_DIFFUSION, RMath.clampValue(diffusion, 0.0f, 1.0f));
+		alext.alEffectf(getALId(), ALExt.AL_REVERB_DIFFUSION, RMath.clampValue(diffusion, 0.0f, 1.0f));
 	}
 
 	/** Set reverb gain (0.0 to 1.0). */
 	public final void setGain(float gain)
 	{
 		this.gain = gain;
-		al.alEffectf(getALId(), AL.AL_REVERB_GAIN, RMath.clampValue(gain, 0.0f, 1.0f));
+		alext.alEffectf(getALId(), ALExt.AL_REVERB_GAIN, RMath.clampValue(gain, 0.0f, 1.0f));
 	}
 
 	/** Set reverb high-frequency gain (0.0 to 1.0). */
 	public final void setHFGain(float gainHF)
 	{
 		this.gainHF = gainHF;
-		al.alEffectf(getALId(), AL.AL_REVERB_GAINHF, RMath.clampValue(gainHF, 0.0f, 1.0f));
+		alext.alEffectf(getALId(), ALExt.AL_REVERB_GAINHF, RMath.clampValue(gainHF, 0.0f, 1.0f));
 	}
 
 	/** Sets the reverb decay high-frequency limit. True = limit on, false = off. */
 	public final void setHFLimit(boolean limit)
 	{
 		HFLimit = limit;
-		al.alEffectf(getALId(), AL.AL_REVERB_DECAY_HFLIMIT, limit?AL.AL_TRUE:AL.AL_FALSE);
+		alext.alEffectf(getALId(), ALExt.AL_REVERB_DECAY_HFLIMIT, limit ? AL.AL_TRUE : AL.AL_FALSE);
 	}
 
 	/** Set late reverb delay (0.0 to 0.1). */
 	public final void setLateDelay(float lateDelay)
 	{
 		this.lateDelay = lateDelay;
-		al.alEffectf(getALId(), AL.AL_REVERB_LATE_REVERB_DELAY, RMath.clampValue(lateDelay, 0.0f, 0.1f));
+		alext.alEffectf(getALId(), ALExt.AL_REVERB_LATE_REVERB_DELAY, RMath.clampValue(lateDelay, 0.0f, 0.1f));
 	}
 
 	/** Set late reverb gain (0.0 to 10.0). */
 	public final void setLateGain(float lateGain)
 	{
 		this.lateGain = lateGain;
-		al.alEffectf(getALId(), AL.AL_REVERB_LATE_REVERB_GAIN, RMath.clampValue(lateGain, 0.0f, 10.0f));
+		alext.alEffectf(getALId(), ALExt.AL_REVERB_LATE_REVERB_GAIN, RMath.clampValue(lateGain, 0.0f, 10.0f));
 	}
 
 	/** Set reverb reflection delay in seconds (0.0 to 0.3). */
 	public final void setReflectionDelay(float reflectionDelay)
 	{
 		this.reflectionDelay = reflectionDelay;
-		al.alEffectf(getALId(), AL.AL_REVERB_REFLECTIONS_DELAY, RMath.clampValue(reflectionDelay, 0.0f, 0.3f));
+		alext.alEffectf(getALId(), ALExt.AL_REVERB_REFLECTIONS_DELAY, RMath.clampValue(reflectionDelay, 0.0f, 0.3f));
 	}
 
 	/** Set reverb reflection gain (0.0 to 3.16). */
 	public final void setReflectionGain(float reflectionGain)
 	{
 		this.reflectionGain = reflectionGain;
-		al.alEffectf(getALId(), AL.AL_REVERB_REFLECTIONS_GAIN, RMath.clampValue(reflectionGain, 0.0f, 3.16f));
+		alext.alEffectf(getALId(), ALExt.AL_REVERB_REFLECTIONS_GAIN, RMath.clampValue(reflectionGain, 0.0f, 3.16f));
 	}
 
 	/** Set reverb room rolloff factor (0.0 to 10.0). */
 	public final void setRoomRolloffFactor(float roomRolloffFactor)
 	{
 		this.roomRolloffFactor = roomRolloffFactor;
-		al.alEffectf(getALId(), AL.AL_REVERB_ROOM_ROLLOFF_FACTOR, RMath.clampValue(roomRolloffFactor, 0.0f, 10.0f));
+		alext.alEffectf(getALId(), ALExt.AL_REVERB_ROOM_ROLLOFF_FACTOR, RMath.clampValue(roomRolloffFactor, 0.0f, 10.0f));
 	}
 
 }

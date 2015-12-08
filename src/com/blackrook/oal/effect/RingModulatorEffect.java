@@ -9,9 +9,8 @@ package com.blackrook.oal.effect;
 
 import com.blackrook.commons.math.RMath;
 import com.blackrook.oal.OALEffect;
-import com.blackrook.oal.enums.EffectType;
-import com.jogamp.openal.AL;
-import com.jogamp.openal.ALC;
+import com.blackrook.oal.OALSystem;
+import com.jogamp.openal.ALExt;
 
 /**
  * Ring modulator effect for sources.
@@ -22,9 +21,9 @@ public class RingModulatorEffect extends OALEffect
 	/** WaveForm type enumeration. */
 	public static enum WaveForm
 	{
-		SINUSOID(AL.AL_RING_MODULATOR_SINUSOID),
-		SAWTOOTH(AL.AL_RING_MODULATOR_SAWTOOTH),
-		SQUARE(AL.AL_RING_MODULATOR_SQUARE);
+		SINUSOID(ALExt.AL_RING_MODULATOR_SINUSOID),
+		SAWTOOTH(ALExt.AL_RING_MODULATOR_SAWTOOTH),
+		SQUARE(ALExt.AL_RING_MODULATOR_SQUARE);
 		
 		final int alVal;
 		private WaveForm(int alVal) {this.alVal = alVal;}
@@ -37,9 +36,9 @@ public class RingModulatorEffect extends OALEffect
 	/** Ring modulator waveform. */
 	protected WaveForm waveForm;
 
-	public RingModulatorEffect(AL al, ALC alc)
+	public RingModulatorEffect(OALSystem system)
 	{
-		super(al,alc,EffectType.RING_MODULATOR);
+		super(system, ALExt.AL_EFFECT_RING_MODULATOR);
 		setWaveform(WaveForm.SINUSOID);
 		setFrequency(440);
 		setHighPassCutoff(800);
@@ -67,21 +66,21 @@ public class RingModulatorEffect extends OALEffect
 	public final void setWaveform(WaveForm waveform)
 	{
 		this.waveForm = waveform;
-		al.alEffecti(getALId(), AL.AL_RING_MODULATOR_WAVEFORM, waveform.alVal);
+		alext.alEffecti(getALId(), ALExt.AL_RING_MODULATOR_WAVEFORM, waveform.alVal);
 	}
 	
 	/** Set frequency shifter frequency (0.0 to 8000.0). */
 	public final void setFrequency(float frequency)
 	{
 		this.frequency = frequency;
-		al.alEffectf(getALId(), AL.AL_RING_MODULATOR_FREQUENCY, RMath.clampValue(frequency, 0.0f, 8000.0f));
+		alext.alEffectf(getALId(), ALExt.AL_RING_MODULATOR_FREQUENCY, RMath.clampValue(frequency, 0.0f, 8000.0f));
 	}
 
 	/** Set ring modulator high-pass cutoff in Hertz (0.0 to 24000.0). */
 	public final void setHighPassCutoff(float highPassCutoff)
 	{
 		this.highPassCutoff = highPassCutoff;
-		al.alEffectf(getALId(), AL.AL_RING_MODULATOR_HIGHPASS_CUTOFF, RMath.clampValue(highPassCutoff, 0.0f, 24000.0f));
+		alext.alEffectf(getALId(), ALExt.AL_RING_MODULATOR_HIGHPASS_CUTOFF, RMath.clampValue(highPassCutoff, 0.0f, 24000.0f));
 	}
 
 

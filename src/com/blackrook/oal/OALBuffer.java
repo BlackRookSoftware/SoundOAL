@@ -1,10 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2014 Black Rook Software
+ * Copyright (c) 2014, 2015 Black Rook Software
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser Public License v2.1
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
- ******************************************************************************/
+ *
+ * Contributors:
+ *     Matt Tropiano - initial API and implementation
+ *******************************************************************************/
 package com.blackrook.oal;
 
 import java.nio.Buffer;
@@ -15,9 +18,6 @@ import javax.sound.sampled.AudioFormat;
 
 import com.blackrook.oal.enums.SoundFormat;
 import com.blackrook.oal.exception.SoundException;
-import com.jogamp.openal.AL;
-import com.jogamp.openal.ALC;
-
 
 /**
  * Sound sample buffer class.
@@ -45,9 +45,9 @@ public final class OALBuffer extends OALObject
 	 * @throws SoundException if an OpenAL buffer cannot be allocated.
 	 * @throws IOException if the SoundFile can't be opened.
 	 */
-	OALBuffer(AL al, ALC alc)
+	OALBuffer(OALSystem system)
 	{
-		super(al,alc);
+		super(system);
 		bufferSize = 0;
 		bufferFormat = SoundFormat.MONO8;
 		bufferRate = FREQ_11KHZ;
@@ -56,11 +56,11 @@ public final class OALBuffer extends OALObject
 	/**
 	 * Constructs a new sound buffer with an entire
 	 * buffer filled with data, decoded.
-	 * @param data	the data to use.
+	 * @param handle the data to use.
 	 */
-	OALBuffer(AL al, ALC alc, JSPISoundHandle data) throws IOException
+	OALBuffer(OALSystem system, JSPISoundHandle handle) throws IOException
 	{
-		this(al,alc,data.getDecoder());
+		this(system, handle.getDecoder());
 	}
 	
 	/**
@@ -68,9 +68,9 @@ public final class OALBuffer extends OALObject
 	 * buffer filled with a decoder's contents.
 	 * @param decoder the decoder to use.
 	 */
-	OALBuffer(AL al, ALC alc, JSPISoundHandle.Decoder decoder) throws IOException
+	OALBuffer(OALSystem system, JSPISoundHandle.Decoder decoder) throws IOException
 	{
-		super(al,alc);
+		super(system);
 		AudioFormat df = decoder.getDecodedAudioFormat();
 		setFrequencyAndFormat(df);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -104,6 +104,14 @@ public final class OALBuffer extends OALObject
 		return STATE_NUMBER[0];
 	}
 	
+	@Override
+	protected final void free()
+	{
+		int[] STATE_NUMBER = new int[1];
+		STATE_NUMBER[0] = getALId();
+		al.alDeleteBuffers(1, STATE_NUMBER, 0);
+	}
+
 	/**
 	 * Loads this buffer with PCM bytes.
 	 * @param pcmData the PCM data to load into it.
@@ -124,16 +132,6 @@ public final class OALBuffer extends OALObject
 	public synchronized void loadPCMData(Buffer pcmData)
 	{
 		loadPCMData(pcmData,pcmData.capacity());
-	}
-
-	/**
-	 * Destroys this sound buffer.
-	 */
-	protected final void free()
-	{
-		int[] STATE_NUMBER = new int[1];
-		STATE_NUMBER[0] = getALId();
-		al.alDeleteBuffers(1, STATE_NUMBER, 0);
 	}
 
 	/** Get the buffer size. */

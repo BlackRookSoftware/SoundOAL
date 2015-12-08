@@ -1,15 +1,19 @@
 /*******************************************************************************
- * Copyright (c) 2014 Black Rook Software
+ * Copyright (c) 2014, 2015 Black Rook Software
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser Public License v2.1
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
- ******************************************************************************/
+ *
+ * Contributors:
+ *     Matt Tropiano - initial API and implementation
+ *******************************************************************************/
 package com.blackrook.oal;
 
 import com.blackrook.oal.exception.SoundException;
 import com.jogamp.openal.AL;
 import com.jogamp.openal.ALC;
+import com.jogamp.openal.ALExt;
 
 /**
  * Generic OpenAL object type. 
@@ -22,6 +26,8 @@ public abstract class OALObject
 	protected AL al;
 	/** Link to ALC instance. */
 	protected ALC alc;
+	/** Link to ALExt instance. */
+	protected ALExt alext;
 	
 	/** This object's ALId. */
 	private int alId;
@@ -31,10 +37,11 @@ public abstract class OALObject
 	/**
 	 * Allocates a new OpenAL object. Calls allocate().
 	 */
-	public OALObject(AL al, ALC alc)
+	public OALObject(OALSystem system)
 	{
-		this.al = al;
-		this.alc = alc;
+		this.al = system.getAL();
+		this.alc = system.getALC();
+		this.alext = system.getALExt();
 		alId = -1;
 		alId = alloc();
 	}

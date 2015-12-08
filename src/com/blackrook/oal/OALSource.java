@@ -1,10 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2014 Black Rook Software
+ * Copyright (c) 2014, 2015 Black Rook Software
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser Public License v2.1
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
- ******************************************************************************/
+ *
+ * Contributors:
+ *     Matt Tropiano - initial API and implementation
+ *******************************************************************************/
 package com.blackrook.oal;
 
 import com.blackrook.commons.Common;
@@ -13,7 +16,7 @@ import com.blackrook.commons.list.List;
 import com.blackrook.commons.math.RMath;
 import com.blackrook.oal.exception.*;
 import com.jogamp.openal.AL;
-import com.jogamp.openal.ALC;
+import com.jogamp.openal.ALExt;
 
 /**
  * Encapsulating class for OpenAL sources.
@@ -89,27 +92,29 @@ public final class OALSource extends OALObject
 	
 	/**
 	 * Creates a new source object.
-	 * @param autovel	should velocity automatically be calculated?
+	 * @param autovel should velocity automatically be calculated if position changes?
+	 * @param effectSlots the effect slots to create.
 	 * @throws SoundException if an OpenAL source cannot be allocated.
 	 */
-	OALSource(AL al, ALC alc, boolean autovel, int effectSlots)
+	OALSource(OALSystem system, boolean autovel, int effectSlots)
 	{
-		super(al,alc);
-		buffer = null;
-		bufferQueue = new Queue<OALBuffer>();
-		sourceListeners = new List<OALSourceListener>(3);
-		autoVelocity = autovel;
+		super(system);
+		this.buffer = null;
+		this.bufferQueue = new Queue<OALBuffer>();
+		this.sourceListeners = new List<OALSourceListener>(3);
+		this.autoVelocity = autovel;
 
-		position = new float[3];
-		velocity = new float[3];
-		direction = new float[3];
+		this.position = new float[3];
+		this.velocity = new float[3];
+		this.direction = new float[3];
 		this.effectSlots = effectSlots;
-		auxEffectSlots = new OALEffectSlot[effectSlots];
-		auxEffectSlotFilters = new OALFilter[effectSlots];
+		this.auxEffectSlots = new OALEffectSlot[effectSlots];
+		this.auxEffectSlotFilters = new OALFilter[effectSlots];
 
 		reset();
 	}
 
+	@Override
 	protected final int allocate()
 	{
 		int[] STATE_NUMBER = new int[1];
@@ -176,10 +181,10 @@ public final class OALSource extends OALObject
 	{
 		al.alSource3i(
 			getALId(), 
-			AL.AL_AUXILIARY_SEND_FILTER, 
-			effectSlot == null ? AL.AL_EFFECTSLOT_NULL : effectSlot.getALId(), 
+			ALExt.AL_AUXILIARY_SEND_FILTER, 
+			effectSlot == null ? ALExt.AL_EFFECTSLOT_NULL : effectSlot.getALId(), 
 			slot,
-			wetFilter == null ? AL.AL_FILTER_NULL : wetFilter.getALId()
+			wetFilter == null ? ALExt.AL_FILTER_NULL : wetFilter.getALId()
 		);
 		auxEffectSlots[slot] = effectSlot;
 		auxEffectSlotFilters[slot] = wetFilter;
@@ -192,7 +197,7 @@ public final class OALSource extends OALObject
 	public void setFilter(OALFilter dryFilter)
 	{
 		this.dryFilter = dryFilter;
-		al.alSourcei(getALId(), AL.AL_DIRECT_FILTER, dryFilter == null ? AL.AL_FILTER_NULL : dryFilter.getALId());
+		al.alSourcei(getALId(), ALExt.AL_DIRECT_FILTER, dryFilter == null ? ALExt.AL_FILTER_NULL : dryFilter.getALId());
 	}
 	
 	/**
@@ -809,6 +814,7 @@ public final class OALSource extends OALObject
 	/**
 	 * Destroys this sound source (BUT NOT ATTACHED BUFFER(s)).
 	 */
+	@Override
 	protected final void free()
 	{
 		if (isPlaying()) stop();

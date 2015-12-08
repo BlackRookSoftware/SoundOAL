@@ -9,9 +9,8 @@ package com.blackrook.oal.effect;
 
 import com.blackrook.commons.math.RMath;
 import com.blackrook.oal.OALEffect;
-import com.blackrook.oal.enums.EffectType;
-import com.jogamp.openal.AL;
-import com.jogamp.openal.ALC;
+import com.blackrook.oal.OALSystem;
+import com.jogamp.openal.ALExt;
 
 /**
  * Echo effect for sound sources.
@@ -29,11 +28,10 @@ public class EchoEffect extends OALEffect
 	protected float feedback;
 	/** Echo spread. */
 	protected float spread;
-
 	
-	public EchoEffect(AL al, ALC alc)
+	public EchoEffect(OALSystem system)
 	{
-		super(al,alc,EffectType.ECHO);
+		super(system, ALExt.AL_EFFECT_ECHO);
 		setDelay(0.1f);
 		setLRDelay(0.1f);
 		setDamping(0.5f);
@@ -87,7 +85,7 @@ public class EchoEffect extends OALEffect
 	public final void setSpread(float spread)
 	{
 		this.spread = spread;
-		al.alEffectf(getALId(), AL.AL_ECHO_SPREAD, RMath.clampValue(spread, -1.0f, 1.0f));
+		alext.alEffectf(getALId(), ALExt.AL_ECHO_SPREAD, RMath.clampValue(spread, -1.0f, 1.0f));
 	}
 
 	/**
@@ -96,7 +94,7 @@ public class EchoEffect extends OALEffect
 	public final void setFeedback(float feedback)
 	{
 		this.feedback = feedback;
-		al.alEffectf(getALId(), AL.AL_ECHO_FEEDBACK, RMath.clampValue(feedback, 0.0f, 1.0f));
+		alext.alEffectf(getALId(), ALExt.AL_ECHO_FEEDBACK, RMath.clampValue(feedback, 0.0f, 1.0f));
 	}
 
 	/**
@@ -105,7 +103,7 @@ public class EchoEffect extends OALEffect
 	public final void setDamping(float damping)
 	{
 		this.damping = damping;
-		al.alEffectf(getALId(), AL.AL_ECHO_DAMPING, RMath.clampValue(damping, 0.0f, 0.99f));
+		alext.alEffectf(getALId(), ALExt.AL_ECHO_DAMPING, RMath.clampValue(damping, 0.0f, 0.99f));
 	}
 
 	/**
@@ -114,7 +112,7 @@ public class EchoEffect extends OALEffect
 	public final void setDelay(float delay)
 	{
 		this.delay = delay;
-		al.alEffectf(getALId(), AL.AL_ECHO_DELAY, RMath.clampValue(delay, 0.0f, 0.207f));
+		alext.alEffectf(getALId(), ALExt.AL_ECHO_DELAY, RMath.clampValue(delay, 0.0f, 0.207f));
 	}
 
 	/**
@@ -123,7 +121,7 @@ public class EchoEffect extends OALEffect
 	public final void setLRDelay(float lrDelay)
 	{
 		this.lrDelay = lrDelay;
-		al.alEffectf(getALId(), AL.AL_ECHO_LRDELAY, RMath.clampValue(lrDelay, 0.0f, 0.404f));
+		alext.alEffectf(getALId(), ALExt.AL_ECHO_LRDELAY, RMath.clampValue(lrDelay, 0.0f, 0.404f));
 	}
 
 

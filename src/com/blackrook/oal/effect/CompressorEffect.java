@@ -8,13 +8,11 @@
 package com.blackrook.oal.effect;
 
 import com.blackrook.oal.OALEffect;
-import com.blackrook.oal.enums.EffectType;
-import com.jogamp.openal.AL;
-import com.jogamp.openal.ALC;
+import com.blackrook.oal.OALSystem;
+import com.jogamp.openal.ALExt;
 
 /**
  * Compressor effect for sound sources.
- * THIS IS KOMPRESSOR
  * @author Matthew Tropiano
  */
 public class CompressorEffect extends OALEffect
@@ -22,9 +20,9 @@ public class CompressorEffect extends OALEffect
 	/** Compressor state. */
 	protected boolean enabled;
 	
-	public CompressorEffect(AL al, ALC alc)
+	public CompressorEffect(OALSystem system)
 	{
-		super(al,alc,EffectType.COMPRESSOR);
+		super(system, ALExt.AL_EFFECT_COMPRESSOR);
 		setEnabled(true);
 	}
 
@@ -38,7 +36,7 @@ public class CompressorEffect extends OALEffect
 	public final void setEnabled(boolean enabled)
 	{
 		this.enabled = enabled;
-		al.alEffecti(getALId(), AL.AL_COMPRESSOR_ONOFF, enabled?1:0);
+		alext.alEffecti(getALId(), ALExt.AL_COMPRESSOR_ONOFF, enabled?1:0);
 	}
 	
 	

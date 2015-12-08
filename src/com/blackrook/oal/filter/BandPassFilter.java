@@ -8,9 +8,8 @@
 package com.blackrook.oal.filter;
 
 import com.blackrook.oal.OALFilter;
-import com.blackrook.oal.enums.FilterType;
-import com.jogamp.openal.AL;
-import com.jogamp.openal.ALC;
+import com.blackrook.oal.OALSystem;
+import com.jogamp.openal.ALExt;
 
 /**
  * Band-pass filter object for band-pass filtering.
@@ -25,12 +24,12 @@ public class BandPassFilter extends OALFilter
 	/** High-frequency band-pass gain. */
 	protected float gainHF;
 	
-	public BandPassFilter(AL al, ALC alc)
+	public BandPassFilter(OALSystem system)
 	{
-		super(al,alc,FilterType.BANDPASS);
-		setGain(1);
-		setLFGain(1);
-		setHFGain(1);
+		super(system, ALExt.AL_FILTER_BANDPASS);
+		setGain(1f);
+		setLFGain(1f);
+		setHFGain(1f);
 	}
 	
 	/**
@@ -40,7 +39,7 @@ public class BandPassFilter extends OALFilter
 	public void setGain(float gain)
 	{
 		this.gain = gain;
-		al.alFilterf(getALId(), AL.AL_BANDPASS_GAIN, gain);
+		alext.alFilterf(getALId(), ALExt.AL_BANDPASS_GAIN, gain);
 	}
 	
 	/**
@@ -58,7 +57,7 @@ public class BandPassFilter extends OALFilter
 	public void setLFGain(float gain)
 	{
 		this.gainLF = gain;
-		al.alFilterf(getALId(), AL.AL_BANDPASS_GAINLF, gain);
+		alext.alFilterf(getALId(), ALExt.AL_BANDPASS_GAINLF, gain);
 	}
 	
 	/**
@@ -76,7 +75,7 @@ public class BandPassFilter extends OALFilter
 	public void setHFGain(float gain)
 	{
 		this.gainHF = gain;
-		al.alFilterf(getALId(), AL.AL_BANDPASS_GAINHF, gain);
+		alext.alFilterf(getALId(), ALExt.AL_BANDPASS_GAINHF, gain);
 	}
 	
 	/**

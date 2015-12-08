@@ -9,9 +9,8 @@ package com.blackrook.oal.effect;
 
 import com.blackrook.commons.math.RMath;
 import com.blackrook.oal.OALEffect;
-import com.blackrook.oal.enums.EffectType;
-import com.jogamp.openal.AL;
-import com.jogamp.openal.ALC;
+import com.blackrook.oal.OALSystem;
+import com.jogamp.openal.ALExt;
 
 /**
  * Flanger effect for sound sources.
@@ -22,8 +21,8 @@ public class FlangerEffect extends OALEffect
 	/** WaveForm type enumeration. */
 	public static enum WaveForm
 	{
-		SINUSOID(AL.AL_FLANGER_WAVEFORM_SINUSOID),
-		TRIANGLE(AL.AL_FLANGER_WAVEFORM_TRIANGLE);
+		SINUSOID(ALExt.AL_FLANGER_WAVEFORM_SINUSOID),
+		TRIANGLE(ALExt.AL_FLANGER_WAVEFORM_TRIANGLE);
 		
 		final int alVal;
 		private WaveForm(int alVal) {this.alVal = alVal;}
@@ -42,9 +41,9 @@ public class FlangerEffect extends OALEffect
 	/** Flanger delay in seconds. */
 	protected float delay;
 	
-	public FlangerEffect(AL al, ALC alc)
+	public FlangerEffect(OALSystem system)
 	{
-		super(al,alc,EffectType.FLANGER);
+		super(system, ALExt.AL_EFFECT_FLANGER);
 		setWaveForm(WaveForm.TRIANGLE);
 		setPhase(0);
 		setRate(0.27f);
@@ -107,7 +106,7 @@ public class FlangerEffect extends OALEffect
 	public final void setDelay(float delay)
 	{
 		this.delay = delay;
-		al.alEffectf(getALId(), AL.AL_CHORUS_DELAY, RMath.clampValue(delay, 0.0f, 0.004f));
+		alext.alEffectf(getALId(), ALExt.AL_FLANGER_DELAY, RMath.clampValue(delay, 0.0f, 0.004f));
 	}
 
 	/**
@@ -116,7 +115,7 @@ public class FlangerEffect extends OALEffect
 	public final void setDepth(float depth)
 	{
 		this.depth = depth;
-		al.alEffectf(getALId(), AL.AL_CHORUS_DEPTH, RMath.clampValue(depth, 0.0f, 1.0f));
+		alext.alEffectf(getALId(), ALExt.AL_FLANGER_DEPTH, RMath.clampValue(depth, 0.0f, 1.0f));
 	}
 
 	/**
@@ -125,7 +124,7 @@ public class FlangerEffect extends OALEffect
 	public final void setFeedback(float feedback)
 	{
 		this.feedback = feedback;
-		al.alEffectf(getALId(), AL.AL_CHORUS_FEEDBACK, RMath.clampValue(feedback, -1.0f, 1.0f));
+		alext.alEffectf(getALId(), ALExt.AL_FLANGER_FEEDBACK, RMath.clampValue(feedback, -1.0f, 1.0f));
 	}
 
 	/**
@@ -134,7 +133,7 @@ public class FlangerEffect extends OALEffect
 	public final void setPhase(int phase)
 	{
 		this.phase = phase;
-		al.alEffecti(getALId(), AL.AL_CHORUS_PHASE, RMath.clampValue(phase, -180, 180));
+		alext.alEffecti(getALId(), ALExt.AL_FLANGER_PHASE, RMath.clampValue(phase, -180, 180));
 	}
 
 	/**
@@ -143,7 +142,7 @@ public class FlangerEffect extends OALEffect
 	public final void setRate(float rate)
 	{
 		this.rate = rate;
-		al.alEffectf(getALId(), AL.AL_CHORUS_RATE, RMath.clampValue(rate, 0.0f, 10.0f));
+		alext.alEffectf(getALId(), ALExt.AL_FLANGER_RATE, RMath.clampValue(rate, 0.0f, 10.0f));
 	}
 
 	/**
@@ -153,6 +152,6 @@ public class FlangerEffect extends OALEffect
 	public final void setWaveForm(WaveForm waveForm)
 	{
 		this.waveForm = waveForm;
-		al.alEffecti(getALId(), AL.AL_CHORUS_WAVEFORM, waveForm.alVal);
+		alext.alEffecti(getALId(), ALExt.AL_FLANGER_WAVEFORM, waveForm.alVal);
 	}
 }

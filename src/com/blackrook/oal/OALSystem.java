@@ -1,10 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2014 Black Rook Software
+ * Copyright (c) 2014, 2015 Black Rook Software
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser Public License v2.1
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
- ******************************************************************************/
+ *
+ * Contributors:
+ *     Matt Tropiano - initial API and implementation
+ *******************************************************************************/
 package com.blackrook.oal;
 
 import java.io.IOException;
@@ -25,8 +28,6 @@ import com.blackrook.oal.effect.ReverbEffect;
 import com.blackrook.oal.effect.RingModulatorEffect;
 import com.blackrook.oal.effect.VocalMorpherEffect;
 import com.blackrook.oal.enums.DistanceModel;
-import com.blackrook.oal.enums.EffectType;
-import com.blackrook.oal.enums.FilterType;
 import com.blackrook.oal.exception.*;
 import com.blackrook.oal.filter.BandPassFilter;
 import com.blackrook.oal.filter.HighPassFilter;
@@ -35,6 +36,7 @@ import com.jogamp.openal.AL;
 import com.jogamp.openal.ALC;
 import com.jogamp.openal.ALCcontext;
 import com.jogamp.openal.ALCdevice;
+import com.jogamp.openal.ALExt;
 import com.jogamp.openal.ALFactory;
 
 /**
@@ -52,6 +54,8 @@ public final class OALSystem
 	private AL al;
 	/** System ALC instance. */
 	private ALC alc;
+	/** System ALExt instance. */
+	private ALExt alext;
 
 	/** Environment listener. */
 	private OALListener listener;
@@ -83,6 +87,7 @@ public final class OALSystem
 		
 		al = ALFactory.getAL();
 		alc = ALFactory.getALC();
+		alext = ALFactory.getALExt();
 		
 		deviceTable = new HashMap<String, Device>(3);
 		
@@ -103,6 +108,11 @@ public final class OALSystem
 	ALC getALC() 
 	{
 		return alc;
+	}
+	
+	ALExt getALExt()
+	{
+		return alext;
 	}
 
 	/**
@@ -250,7 +260,7 @@ public final class OALSystem
 		if (currentDeviceContext == null)
 			throw new SoundSystemException("Cannot create Source for current context: no context.");
 		
-		OALSource s = new OALSource(al, alc, autoVelocity, 2);
+		OALSource s = new OALSource(this, autoVelocity, 2);
 		currentDeviceContext.sourceRefs.add(s);
 		return s;
 	}
@@ -270,18 +280,18 @@ public final class OALSystem
 	}
 	
 	/**
-	 * Allocates a new buffer for loading data into. Buffers are independant
+	 * Allocates a new buffer for loading data into. Buffers are independent
 	 * of device context. 
 	 * @return	a newly allocated buffer.
 	 * @throws	SoundException	if the Buffer can't be allocated somehow.
 	 */
 	public OALBuffer createBuffer()
 	{
-		return new OALBuffer(al, alc);
+		return new OALBuffer(this);
 	}
 	
 	/**
-	 * Allocates a new buffer for loading data into. Buffers are independant
+	 * Allocates a new buffer for loading data into. Buffers are independent
 	 * of device context. 
 	 * @return a set of newly allocated buffers.
 	 * @throws SoundException if the Buffer can't be allocated somehow.
@@ -312,14 +322,14 @@ public final class OALSystem
 	 * If you know that the data being loaded is very long or large, you
 	 * should consider using a Streaming Source to conserve memory.
 	 * Buffers are independant of device context. 
-	 * @param data	the sound data to load into this buffer.
+	 * @param handle the handle to the sound data to load into this buffer.
 	 * @return a newly allocated buffer.
-	 * @throws IOException		if the data can't be read.
-	 * @throws SoundException	if the Buffer can't be allocated somehow.
+	 * @throws IOException if the data can't be read.
+	 * @throws SoundException if the Buffer can't be allocated somehow.
 	 */
-	public OALBuffer createBuffer(JSPISoundHandle data) throws IOException
+	public OALBuffer createBuffer(JSPISoundHandle handle) throws IOException
 	{
-		return new OALBuffer(al, alc, data);
+		return new OALBuffer(this, handle);
 	}
 	
 	/**
@@ -328,14 +338,14 @@ public final class OALSystem
 	 * If you know that the data being loaded is very long or large, you
 	 * should consider using a Streaming Source to conserve memory.
 	 * Buffers are independent of device context. 
-	 * @param dataDecoder	the decoder of the sound data to load into this buffer.
+	 * @param dataDecoder the decoder of the sound data to load into this buffer.
 	 * @return a newly allocated buffer.
-	 * @throws IOException		if the data can't be read.
-	 * @throws SoundException	if the Buffer can't be allocated somehow.
+	 * @throws IOException if the data can't be read.
+	 * @throws SoundException if the Buffer can't be allocated somehow.
 	 */
 	public OALBuffer createBuffer(JSPISoundHandle.Decoder dataDecoder) throws IOException
 	{
-		return new OALBuffer(al, alc, dataDecoder);
+		return new OALBuffer(this, dataDecoder);
 	}
 	
 	/**
@@ -349,47 +359,7 @@ public final class OALSystem
 	 */
 	public OALEffectSlot createEffectSlot()
 	{
-		return new OALEffectSlot(al, alc);
-	}
-	
-	/**
-	 * Creates a new Effect object for adding to Sources for
-	 * altered playback/sound rendering. It is better to create
-	 * single effect types that get used by many Sources rather than
-	 * create a new effect for each source.
-	 * @param effectType	the specific effect type to create.
-	 * @return	a new Effect object.
-	 */
-	public OALEffect createEffect(EffectType effectType)
-	{
-		switch (effectType)
-		{
-			case AUTOWAH:
-				return createAutowahEffect();
-			case CHORUS:
-				return createChorusEffect();
-			case COMPRESSOR:
-				return createCompressorEffect();
-			case DISTORTION:
-				return createDistortionEffect();
-			case ECHO:
-				return createEchoEffect();
-			case EQUALIZER:
-				return createEqualizerEffect();
-			case FLANGER:
-				return createFlangerEffect();
-			case FREQUENCY_SHIFT:
-				return createFrequencyShiftEffect();
-			case PITCH_SHIFT:
-				return createPitchShiftEffect();
-			case REVERB:
-				return createReverbEffect();
-			case RING_MODULATOR:
-				return createRingModulatorEffect();
-			case VOCAL_MORPHER:
-				return createVocalMorpherEffect();
-		}
-		return null;
+		return new OALEffectSlot(this);
 	}
 	
 	/**
@@ -398,7 +368,7 @@ public final class OALSystem
 	 */
 	public AutowahEffect createAutowahEffect()
 	{
-		return new AutowahEffect(al, alc);
+		return new AutowahEffect(this);
 	}
 	
 	/**
@@ -407,7 +377,7 @@ public final class OALSystem
 	 */
 	public ChorusEffect createChorusEffect()
 	{
-		return new ChorusEffect(al, alc);
+		return new ChorusEffect(this);
 	}
 	
 	/**
@@ -416,7 +386,7 @@ public final class OALSystem
 	 */
 	public CompressorEffect createCompressorEffect()
 	{
-		return new CompressorEffect(al, alc);
+		return new CompressorEffect(this);
 	}
 	
 	/**
@@ -425,7 +395,7 @@ public final class OALSystem
 	 */
 	public DistortionEffect createDistortionEffect()
 	{
-		return new DistortionEffect(al, alc);
+		return new DistortionEffect(this);
 	}
 	
 	/**
@@ -434,7 +404,7 @@ public final class OALSystem
 	 */
 	public EchoEffect createEchoEffect()
 	{
-		return new EchoEffect(al, alc);
+		return new EchoEffect(this);
 	}
 	
 	/**
@@ -443,7 +413,7 @@ public final class OALSystem
 	 */
 	public EqualizerEffect createEqualizerEffect()
 	{
-		return new EqualizerEffect(al, alc);
+		return new EqualizerEffect(this);
 	}
 	
 	/**
@@ -452,7 +422,7 @@ public final class OALSystem
 	 */
 	public FlangerEffect createFlangerEffect()
 	{
-		return new FlangerEffect(al, alc);
+		return new FlangerEffect(this);
 	}
 	
 	/**
@@ -461,7 +431,7 @@ public final class OALSystem
 	 */
 	public FrequencyShiftEffect createFrequencyShiftEffect()
 	{
-		return new FrequencyShiftEffect(al, alc);
+		return new FrequencyShiftEffect(this);
 	}
 	
 	/**
@@ -470,7 +440,7 @@ public final class OALSystem
 	 */
 	public PitchShiftEffect createPitchShiftEffect()
 	{
-		return new PitchShiftEffect(al, alc);
+		return new PitchShiftEffect(this);
 	}
 	
 	/**
@@ -479,7 +449,7 @@ public final class OALSystem
 	 */
 	public ReverbEffect createReverbEffect()
 	{
-		return new ReverbEffect(al, alc);
+		return new ReverbEffect(this);
 	}
 	
 	/**
@@ -488,7 +458,7 @@ public final class OALSystem
 	 */
 	public RingModulatorEffect createRingModulatorEffect()
 	{
-		return new RingModulatorEffect(al, alc);
+		return new RingModulatorEffect(this);
 	}
 	
 	/**
@@ -497,29 +467,7 @@ public final class OALSystem
 	 */
 	public VocalMorpherEffect createVocalMorpherEffect()
 	{
-		return new VocalMorpherEffect(al, alc);
-	}
-	
-	/**
-	 * Creates a new Filter object for adding to Sources for
-	 * altered playback/sound rendering. It is better to create
-	 * single effect types that get used by many Sources rather than
-	 * create a new effect for each source.
-	 * @param filterType	the specific effect type to create.
-	 * @return	a new Filter object.
-	 */
-	public OALFilter createFilter(FilterType filterType)
-	{
-		switch (filterType)
-		{
-			case BANDPASS:
-				return createBandPassFilter();
-			case LOWPASS:
-				return createLowPassFilter();
-			case HIGHPASS:
-				return createHighPassFilter();
-		}
-		return null;
+		return new VocalMorpherEffect(this);
 	}
 	
 	/**
@@ -528,7 +476,7 @@ public final class OALSystem
 	 */
 	public HighPassFilter createHighPassFilter()
 	{
-		return new HighPassFilter(al, alc);
+		return new HighPassFilter(this);
 	}
 	
 	/**
@@ -537,7 +485,7 @@ public final class OALSystem
 	 */
 	public LowPassFilter createLowPassFilter()
 	{
-		return new LowPassFilter(al, alc);
+		return new LowPassFilter(this);
 	}
 	
 	/**
@@ -546,7 +494,7 @@ public final class OALSystem
 	 */
 	public BandPassFilter createBandPassFilter()
 	{
-		return new BandPassFilter(al, alc);
+		return new BandPassFilter(this);
 	}
 	
 	/**

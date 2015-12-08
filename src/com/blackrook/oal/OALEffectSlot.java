@@ -1,15 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2014 Black Rook Software
+ * Copyright (c) 2014, 2015 Black Rook Software
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser Public License v2.1
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
- ******************************************************************************/
+ *
+ * Contributors:
+ *     Matt Tropiano - initial API and implementation
+ *******************************************************************************/
 package com.blackrook.oal;
 
 import com.blackrook.oal.exception.SoundException;
 import com.jogamp.openal.AL;
-import com.jogamp.openal.ALC;
+import com.jogamp.openal.ALExt;
 
 /**
  * Auxiliary Effect Slot for enforcing effect mixing rules.
@@ -28,9 +31,9 @@ public class OALEffectSlot extends OALObject
 	/**
 	 * Creates a new auxiliary effect slot.
 	 */
-	OALEffectSlot(AL al, ALC alc)
+	OALEffectSlot(OALSystem system)
 	{
-		super(al,alc);
+		super(system);
 		setEffect(null);
 	}
 	
@@ -39,7 +42,7 @@ public class OALEffectSlot extends OALObject
 	{
 		int[] STATE_NUMBER = new int[1];
 		al.alGetError();
-		al.alGenAuxiliaryEffectSlots(1, STATE_NUMBER, 0);
+		alext.alGenAuxiliaryEffectSlots(1, STATE_NUMBER, 0);
 		errorCheck(this);
 		return STATE_NUMBER[0];
 	}
@@ -49,7 +52,7 @@ public class OALEffectSlot extends OALObject
 	{
 		int[] STATE_NUMBER = new int[1];
 		STATE_NUMBER[0] = getALId();
-		al.alDeleteBuffers(1, STATE_NUMBER, 0);
+		alext.alDeleteAuxiliaryEffectSlots(1, STATE_NUMBER, 0);
 		errorCheck(this);
 	}
 
@@ -60,7 +63,7 @@ public class OALEffectSlot extends OALObject
 	public void setEffect(OALEffect effect)
 	{
 		this.effect = effect;
-		al.alAuxiliaryEffectSloti(getALId(), AL.AL_EFFECTSLOT_EFFECT, effect == null ? AL.AL_EFFECT_NULL : effect.getALId());
+		alext.alAuxiliaryEffectSloti(getALId(), ALExt.AL_EFFECTSLOT_EFFECT, effect == null ? ALExt.AL_EFFECT_NULL : effect.getALId());
 	}
 	
 	/**
@@ -88,7 +91,7 @@ public class OALEffectSlot extends OALObject
 	public void setGain(float gain)
 	{
 		slotGain = gain;
-		al.alAuxiliaryEffectSlotf(getALId(), AL.AL_EFFECTSLOT_GAIN, gain);
+		alext.alAuxiliaryEffectSlotf(getALId(), ALExt.AL_EFFECTSLOT_GAIN, gain);
 	}
 	
 	/**
@@ -109,7 +112,7 @@ public class OALEffectSlot extends OALObject
 	public final void setAutoUpdating(boolean autoUpdate)
 	{
 		this.autoUpdating = autoUpdate;
-		al.alAuxiliaryEffectSloti(getALId(), AL.AL_EFFECTSLOT_AUXILIARY_SEND_AUTO, autoUpdate ? AL.AL_TRUE : AL.AL_FALSE);
+		alext.alAuxiliaryEffectSloti(getALId(), ALExt.AL_EFFECTSLOT_AUXILIARY_SEND_AUTO, autoUpdate ? AL.AL_TRUE : AL.AL_FALSE);
 	}
 
 }

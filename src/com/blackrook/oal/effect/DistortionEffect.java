@@ -9,9 +9,8 @@ package com.blackrook.oal.effect;
 
 import com.blackrook.commons.math.RMath;
 import com.blackrook.oal.OALEffect;
-import com.blackrook.oal.enums.EffectType;
-import com.jogamp.openal.AL;
-import com.jogamp.openal.ALC;
+import com.blackrook.oal.OALSystem;
+import com.jogamp.openal.ALExt;
 
 /**
  * Distortion effect for sound sources.
@@ -30,9 +29,9 @@ public class DistortionEffect extends OALEffect
 	/** Distortion equalizer bandwidth in Hertz. */
 	protected float eqBandwidth;
 	
-	public DistortionEffect(AL al, ALC alc)
+	public DistortionEffect(OALSystem system)
 	{
-		super(al,alc,EffectType.DISTORTION);
+		super(system, ALExt.AL_EFFECT_DISTORTION);
 		setGain(0.05f);
 		setEdge(0.2f);
 		setLowPassCutoff(8000);
@@ -74,35 +73,35 @@ public class DistortionEffect extends OALEffect
 	public final void setGain(float gain)
 	{
 		this.gain = gain;
-		al.alEffectf(getALId(), AL.AL_DISTORTION_GAIN, RMath.clampValue(gain, 0.0f, 1.0f));
+		alext.alEffectf(getALId(), ALExt.AL_DISTORTION_GAIN, RMath.clampValue(gain, 0.0f, 1.0f));
 	}
 
 	/** Set distortion edge (0.0 to 1.0). */
 	public final void setEdge(float edge)
 	{
 		this.edge = edge;
-		al.alEffectf(getALId(), AL.AL_DISTORTION_EDGE, RMath.clampValue(edge, 0.0f, 1.0f));
+		alext.alEffectf(getALId(), ALExt.AL_DISTORTION_EDGE, RMath.clampValue(edge, 0.0f, 1.0f));
 	}
 
 	/** Set distortion equalizer bandwidth in Hertz (80.0 to 24000.0). */
 	public final void setEqualizerBandwidth(float eqBandwidth)
 	{
 		this.eqBandwidth = eqBandwidth;
-		al.alEffectf(getALId(), AL.AL_DISTORTION_EQBANDWIDTH, RMath.clampValue(eqBandwidth, 80.0f, 24000.0f));
+		alext.alEffectf(getALId(), ALExt.AL_DISTORTION_EQBANDWIDTH, RMath.clampValue(eqBandwidth, 80.0f, 24000.0f));
 	}
 
 	/** Set distortion equalizer centering in Hertz (80.0 to 24000.0). */
 	public final void setEqualizerCenter(float eqCenter)
 	{
 		this.eqCenter = eqCenter;
-		al.alEffectf(getALId(), AL.AL_DISTORTION_EQCENTER, RMath.clampValue(eqCenter, 80.0f, 24000.0f));
+		alext.alEffectf(getALId(), ALExt.AL_DISTORTION_EQCENTER, RMath.clampValue(eqCenter, 80.0f, 24000.0f));
 	}
 
 	/** Set distortion low-pass cutoff in Hertz (80.0 to 24000.0). */
 	public final void setLowPassCutoff(float lowPassCutoff)
 	{
 		this.lowPassCutoff = lowPassCutoff;
-		al.alEffectf(getALId(), AL.AL_DISTORTION_LOWPASS_CUTOFF, RMath.clampValue(lowPassCutoff, 80.0f, 24000.0f));
+		alext.alEffectf(getALId(), ALExt.AL_DISTORTION_LOWPASS_CUTOFF, RMath.clampValue(lowPassCutoff, 80.0f, 24000.0f));
 	}
 
 }

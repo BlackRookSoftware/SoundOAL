@@ -9,9 +9,8 @@ package com.blackrook.oal.effect;
 
 import com.blackrook.commons.math.RMath;
 import com.blackrook.oal.OALEffect;
-import com.blackrook.oal.enums.EffectType;
-import com.jogamp.openal.AL;
-import com.jogamp.openal.ALC;
+import com.blackrook.oal.OALSystem;
+import com.jogamp.openal.ALExt;
 
 /**
  * Vocal Modifier effect for sources.
@@ -22,9 +21,9 @@ public class VocalMorpherEffect extends OALEffect
 	/** WaveForm type enumeration. */
 	public static enum WaveForm
 	{
-		SINUSOID(AL.AL_VOCAL_MORPHER_WAVEFORM_SINUSOID),
-		TRIANGLE(AL.AL_VOCAL_MORPHER_WAVEFORM_TRIANGLE),
-		SAWTOOTH(AL.AL_VOCAL_MORPHER_WAVEFORM_SAWTOOTH);
+		SINUSOID(ALExt.AL_VOCAL_MORPHER_WAVEFORM_SINUSOID),
+		TRIANGLE(ALExt.AL_VOCAL_MORPHER_WAVEFORM_TRIANGLE),
+		SAWTOOTH(ALExt.AL_VOCAL_MORPHER_WAVEFORM_SAWTOOTH);
 		
 		final int alVal;
 		private WaveForm(int alVal) {this.alVal = alVal;}
@@ -33,36 +32,36 @@ public class VocalMorpherEffect extends OALEffect
 	/** Phoneme type enumeration. */
 	public static enum Phoneme
 	{
-		A(AL.AL_VOCAL_MORPHER_PHONEME_A),
-		E(AL.AL_VOCAL_MORPHER_PHONEME_E),
-		I(AL.AL_VOCAL_MORPHER_PHONEME_I),
-		O(AL.AL_VOCAL_MORPHER_PHONEME_O),
-		U(AL.AL_VOCAL_MORPHER_PHONEME_U),
-		AA(AL.AL_VOCAL_MORPHER_PHONEME_AA),
-		AE(AL.AL_VOCAL_MORPHER_PHONEME_AE),
-		AH(AL.AL_VOCAL_MORPHER_PHONEME_AH),
-		AO(AL.AL_VOCAL_MORPHER_PHONEME_AO),
-		EH(AL.AL_VOCAL_MORPHER_PHONEME_EH),
-		ER(AL.AL_VOCAL_MORPHER_PHONEME_ER),
-		IH(AL.AL_VOCAL_MORPHER_PHONEME_IH),
-		IY(AL.AL_VOCAL_MORPHER_PHONEME_IY),
-		UH(AL.AL_VOCAL_MORPHER_PHONEME_UH),
-		UW(AL.AL_VOCAL_MORPHER_PHONEME_UW),
-		B(AL.AL_VOCAL_MORPHER_PHONEME_B),
-		D(AL.AL_VOCAL_MORPHER_PHONEME_D),
-		F(AL.AL_VOCAL_MORPHER_PHONEME_F),
-		G(AL.AL_VOCAL_MORPHER_PHONEME_G),
-		J(AL.AL_VOCAL_MORPHER_PHONEME_J),
-		K(AL.AL_VOCAL_MORPHER_PHONEME_K),
-		L(AL.AL_VOCAL_MORPHER_PHONEME_L),
-		M(AL.AL_VOCAL_MORPHER_PHONEME_M),
-		N(AL.AL_VOCAL_MORPHER_PHONEME_N),
-		P(AL.AL_VOCAL_MORPHER_PHONEME_P),
-		R(AL.AL_VOCAL_MORPHER_PHONEME_R),
-		S(AL.AL_VOCAL_MORPHER_PHONEME_S),
-		T(AL.AL_VOCAL_MORPHER_PHONEME_T),
-		V(AL.AL_VOCAL_MORPHER_PHONEME_V),
-		Z(AL.AL_VOCAL_MORPHER_PHONEME_Z);
+		A(ALExt.AL_VOCAL_MORPHER_PHONEME_A),
+		E(ALExt.AL_VOCAL_MORPHER_PHONEME_E),
+		I(ALExt.AL_VOCAL_MORPHER_PHONEME_I),
+		O(ALExt.AL_VOCAL_MORPHER_PHONEME_O),
+		U(ALExt.AL_VOCAL_MORPHER_PHONEME_U),
+		AA(ALExt.AL_VOCAL_MORPHER_PHONEME_AA),
+		AE(ALExt.AL_VOCAL_MORPHER_PHONEME_AE),
+		AH(ALExt.AL_VOCAL_MORPHER_PHONEME_AH),
+		AO(ALExt.AL_VOCAL_MORPHER_PHONEME_AO),
+		EH(ALExt.AL_VOCAL_MORPHER_PHONEME_EH),
+		ER(ALExt.AL_VOCAL_MORPHER_PHONEME_ER),
+		IH(ALExt.AL_VOCAL_MORPHER_PHONEME_IH),
+		IY(ALExt.AL_VOCAL_MORPHER_PHONEME_IY),
+		UH(ALExt.AL_VOCAL_MORPHER_PHONEME_UH),
+		UW(ALExt.AL_VOCAL_MORPHER_PHONEME_UW),
+		B(ALExt.AL_VOCAL_MORPHER_PHONEME_B),
+		D(ALExt.AL_VOCAL_MORPHER_PHONEME_D),
+		F(ALExt.AL_VOCAL_MORPHER_PHONEME_F),
+		G(ALExt.AL_VOCAL_MORPHER_PHONEME_G),
+		J(ALExt.AL_VOCAL_MORPHER_PHONEME_J),
+		K(ALExt.AL_VOCAL_MORPHER_PHONEME_K),
+		L(ALExt.AL_VOCAL_MORPHER_PHONEME_L),
+		M(ALExt.AL_VOCAL_MORPHER_PHONEME_M),
+		N(ALExt.AL_VOCAL_MORPHER_PHONEME_N),
+		P(ALExt.AL_VOCAL_MORPHER_PHONEME_P),
+		R(ALExt.AL_VOCAL_MORPHER_PHONEME_R),
+		S(ALExt.AL_VOCAL_MORPHER_PHONEME_S),
+		T(ALExt.AL_VOCAL_MORPHER_PHONEME_T),
+		V(ALExt.AL_VOCAL_MORPHER_PHONEME_V),
+		Z(ALExt.AL_VOCAL_MORPHER_PHONEME_Z);
 		
 		final int alVal;
 		private Phoneme(int alVal) {this.alVal = alVal;}
@@ -81,9 +80,9 @@ public class VocalMorpherEffect extends OALEffect
 	/** Morpher waveform. */
 	protected WaveForm waveForm;
 
-	public VocalMorpherEffect(AL al, ALC alc)
+	public VocalMorpherEffect(OALSystem system)
 	{
-		super(al,alc,EffectType.VOCAL_MORPHER);
+		super(system, ALExt.AL_EFFECT_VOCAL_MORPHER);
 		setPhonemeA(Phoneme.A);
 		setPhonemeB(Phoneme.ER);
 		setPhonemeACoarseTuning(0);
@@ -132,42 +131,42 @@ public class VocalMorpherEffect extends OALEffect
 	public final void setPhonemeA(Phoneme phonemeA)
 	{
 		this.phonemeA = phonemeA;
-		al.alEffecti(getALId(), AL.AL_VOCAL_MORPHER_PHONEMEA, phonemeA.alVal);
+		alext.alEffecti(getALId(), ALExt.AL_VOCAL_MORPHER_PHONEMEA, phonemeA.alVal);
 	}
 
 	/** Set morpher phoneme A coarse tuning in semitones (-24 to 24). */
 	public final void setPhonemeACoarseTuning(int phonemeACoarseTuning)
 	{
 		this.phonemeACoarseTuning = phonemeACoarseTuning;
-		al.alEffecti(getALId(), AL.AL_VOCAL_MORPHER_PHONEMEA_COARSE_TUNING, RMath.clampValue(phonemeACoarseTuning, -24, 24));
+		alext.alEffecti(getALId(), ALExt.AL_VOCAL_MORPHER_PHONEMEA_COARSE_TUNING, RMath.clampValue(phonemeACoarseTuning, -24, 24));
 	}
 
 	/** Set morpher phoneme B. */
 	public final void setPhonemeB(Phoneme phonemeB)
 	{
 		this.phonemeB = phonemeB;
-		al.alEffecti(getALId(), AL.AL_VOCAL_MORPHER_PHONEMEB, phonemeB.alVal);
+		alext.alEffecti(getALId(), ALExt.AL_VOCAL_MORPHER_PHONEMEB, phonemeB.alVal);
 	}
 
 	/** Set morpher phoneme B coarse tuning in semitones (-24 to 24). */
 	public final void setPhonemeBCoarseTuning(int phonemeBCoarseTuning)
 	{
 		this.phonemeBCoarseTuning = phonemeBCoarseTuning;
-		al.alEffecti(getALId(), AL.AL_VOCAL_MORPHER_PHONEMEB_COARSE_TUNING, RMath.clampValue(phonemeBCoarseTuning, -24, 24));
+		alext.alEffecti(getALId(), ALExt.AL_VOCAL_MORPHER_PHONEMEB_COARSE_TUNING, RMath.clampValue(phonemeBCoarseTuning, -24, 24));
 	}
 
 	/** Set vocal morpher rate in Hertz (0.0 to 10.0). */
 	public final void setRate(float rate)
 	{
 		this.rate = rate;
-		al.alEffectf(getALId(), AL.AL_VOCAL_MORPHER_RATE, RMath.clampValue(rate, 0.0f, 10.0f));
+		alext.alEffectf(getALId(), ALExt.AL_VOCAL_MORPHER_RATE, RMath.clampValue(rate, 0.0f, 10.0f));
 	}
 
 	/** Set morpher waveform. */
 	public final void setWaveform(WaveForm waveform)
 	{
 		this.waveForm = waveform;
-		al.alEffecti(getALId(), AL.AL_VOCAL_MORPHER_WAVEFORM, waveform.alVal);
+		alext.alEffecti(getALId(), ALExt.AL_VOCAL_MORPHER_WAVEFORM, waveform.alVal);
 	}
 	
 }
