@@ -219,6 +219,7 @@ public final class OALSystem
 	public void nullifyCurrentContext()
 	{
 		suspendCurrentContext();
+		currentDeviceContext.destroy();
 		currentDeviceContext = null;
 		alc.alcMakeContextCurrent(null);
 	}

@@ -176,7 +176,7 @@ public final class OALSource extends OALObject
 	 * @param slot	the slot to add this to. 
 	 * @param filt	the filter to add (can be null).
 	 */
-	public void setEffectSlot(int slot, OALFilter filt)
+	public void setEffectSlotFilter(int slot, OALFilter filt)
 	{
 		setEffectSlot(slot, null, filt);
 	}

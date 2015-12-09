@@ -110,7 +110,7 @@ public abstract class OALObject
 	{
 		int error = al.alGetError();
 		if (error != AL.AL_NO_ERROR)
-			throw new SoundException("Object "+obj.toString()+": AL returned \""+al.alGetString(error)+"\"");
+			throw new SoundException("Object "+obj.getClass().getSimpleName()+": AL returned \""+al.alGetString(error)+"\"");
 	}
 	
 	/**
