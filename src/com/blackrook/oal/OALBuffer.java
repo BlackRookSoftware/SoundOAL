@@ -100,7 +100,7 @@ public final class OALBuffer extends OALObject
 		int[] STATE_NUMBER = new int[1];
 		al.alGetError();
 		al.alGenBuffers(1, STATE_NUMBER, 0);
-		errorCheck(this);
+		errorCheck();
 		return STATE_NUMBER[0];
 	}
 	
@@ -110,6 +110,7 @@ public final class OALBuffer extends OALObject
 		int[] STATE_NUMBER = new int[1];
 		STATE_NUMBER[0] = getALId();
 		al.alDeleteBuffers(1, STATE_NUMBER, 0);
+		errorCheck();
 	}
 
 	/**
@@ -122,7 +123,7 @@ public final class OALBuffer extends OALObject
 		bufferSize = len;
 		clearError();
 		al.alBufferData(getALId(), bufferFormat.alVal, pcmData, len, bufferRate);
-		errorCheck(this);
+		errorCheck();
 	}
 
 	/**
@@ -131,7 +132,7 @@ public final class OALBuffer extends OALObject
 	 */
 	public synchronized void loadPCMData(Buffer pcmData)
 	{
-		loadPCMData(pcmData,pcmData.capacity());
+		loadPCMData(pcmData, pcmData.capacity());
 	}
 
 	/** Get the buffer size. */

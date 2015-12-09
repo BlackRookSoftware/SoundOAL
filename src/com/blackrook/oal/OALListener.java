@@ -12,6 +12,7 @@ package com.blackrook.oal;
 
 import com.blackrook.commons.math.geometry.Point3F;
 import com.blackrook.commons.math.geometry.Vect3F;
+import com.blackrook.oal.exception.SoundException;
 import com.jogamp.openal.AL;
 import com.jogamp.openal.ALC;
 
@@ -80,6 +81,17 @@ public class OALListener
 	}
 	
 	/**
+	 * Convenience method for checking for an OpenAL error and throwing a SoundException
+	 * if an error is raised. 
+	 */
+	private void errorCheck()
+	{
+		int error = al.alGetError();
+		if (error != AL.AL_NO_ERROR)
+			throw new SoundException("Listener: AL returned \""+al.alGetString(error)+"\"");
+	}
+	
+	/**
 	 * Sets the Listener's position attributes.
 	 * @param x			the x value.
 	 * @param y			the y value.
@@ -101,8 +113,9 @@ public class OALListener
 	 */
 	public void setVelocity(float x, float y, float z)
 	{
-		velocity.set(x,y,z);
 		al.alListenerfv(AL.AL_VELOCITY,new float[]{(float)velocity.x, (float)velocity.y, (float)velocity.z},0);
+		errorCheck();
+		velocity.set(x,y,z);
 	}
 
 	/**
@@ -113,11 +126,12 @@ public class OALListener
 	 */
 	public void setFacing(float x, float y, float z)
 	{
-		orientationFacing.set(x,y,z);
 		al.alListenerfv(AL.AL_ORIENTATION, new float[]{
 			(float)orientationFacing.x, (float)orientationFacing.y, (float)orientationFacing.z, 
 			(float)orientationUp.x, (float)orientationUp.y, (float)orientationUp.z}, 
 			0);
+		errorCheck();
+		orientationFacing.set(x,y,z);
 	}
 
 	/**
@@ -128,11 +142,12 @@ public class OALListener
 	 */
 	public void setTop(float x, float y, float z)
 	{
-		orientationUp.set(x,y,z);
 		al.alListenerfv(AL.AL_ORIENTATION, new float[]{
 			(float)orientationFacing.x, (float)orientationFacing.y, (float)orientationFacing.z, 
 			(float)orientationUp.x, (float)orientationUp.y, (float)orientationUp.z}, 
 			0);
+		errorCheck();
+		orientationUp.set(x,y,z);
 	}
 
 	/**

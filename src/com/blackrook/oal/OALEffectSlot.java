@@ -35,6 +35,7 @@ public class OALEffectSlot extends OALObject
 	{
 		super(system);
 		setEffect(null);
+		setAutoUpdating(true);
 	}
 	
 	@Override
@@ -43,7 +44,7 @@ public class OALEffectSlot extends OALObject
 		int[] STATE_NUMBER = new int[1];
 		al.alGetError();
 		alext.alGenAuxiliaryEffectSlots(1, STATE_NUMBER, 0);
-		errorCheck(this);
+		errorCheck();
 		return STATE_NUMBER[0];
 	}
 
@@ -53,7 +54,7 @@ public class OALEffectSlot extends OALObject
 		int[] STATE_NUMBER = new int[1];
 		STATE_NUMBER[0] = getALId();
 		alext.alDeleteAuxiliaryEffectSlots(1, STATE_NUMBER, 0);
-		errorCheck(this);
+		errorCheck();
 	}
 
 	/**
@@ -64,6 +65,7 @@ public class OALEffectSlot extends OALObject
 	{
 		this.effect = effect;
 		alext.alAuxiliaryEffectSloti(getALId(), ALExt.AL_EFFECTSLOT_EFFECT, effect == null ? ALExt.AL_EFFECT_NULL : effect.getALId());
+		errorCheck();
 	}
 	
 	/**
@@ -85,21 +87,22 @@ public class OALEffectSlot extends OALObject
 	}
 	
 	/**
-	 * Sets effect slot gain.
-	 * @param gain	the gain to use.
-	 */
-	public void setGain(float gain)
-	{
-		slotGain = gain;
-		alext.alAuxiliaryEffectSlotf(getALId(), ALExt.AL_EFFECTSLOT_GAIN, gain);
-	}
-	
-	/**
 	 * Returns the effect slot gain.
 	 */
 	public float getGain()
 	{
 		return slotGain;
+	}
+
+	/**
+	 * Sets effect slot gain.
+	 * @param gain the gain to use.
+	 */
+	public void setGain(float gain)
+	{
+		slotGain = gain;
+		alext.alAuxiliaryEffectSlotf(getALId(), ALExt.AL_EFFECTSLOT_GAIN, gain);
+		errorCheck();
 	}
 
 	/** Does this auto update itself if the Effect changes? */
@@ -113,6 +116,7 @@ public class OALEffectSlot extends OALObject
 	{
 		this.autoUpdating = autoUpdate;
 		alext.alAuxiliaryEffectSloti(getALId(), ALExt.AL_EFFECTSLOT_AUXILIARY_SEND_AUTO, autoUpdate ? AL.AL_TRUE : AL.AL_FALSE);
+		errorCheck();
 	}
 
 }

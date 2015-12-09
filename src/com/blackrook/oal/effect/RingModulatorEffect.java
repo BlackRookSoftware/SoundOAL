@@ -40,8 +40,8 @@ public class RingModulatorEffect extends OALEffect
 	{
 		super(system, ALExt.AL_EFFECT_RING_MODULATOR);
 		setWaveform(WaveForm.SINUSOID);
-		setFrequency(440);
-		setHighPassCutoff(800);
+		setFrequency(ALExt.AL_RING_MODULATOR_DEFAULT_FREQUENCY);
+		setHighPassCutoff(ALExt.AL_RING_MODULATOR_DEFAULT_HIGHPASS_CUTOFF);
 	}
 	
 	/** Get ring modulator waveform. */
@@ -50,10 +50,26 @@ public class RingModulatorEffect extends OALEffect
 		return waveForm;
 	}
 
+	/** Set ring modulator waveform. */
+	public final void setWaveform(WaveForm waveform)
+	{
+		this.waveForm = waveform;
+		alext.alEffecti(getALId(), ALExt.AL_RING_MODULATOR_WAVEFORM, waveform.alVal);
+		errorCheck();
+	}
+
 	/** Get ring modulator shifter frequency. */
 	public final float getFrequency()
 	{
 		return frequency;
+	}
+
+	/** Set frequency shifter frequency (0.0 to 8000.0). */
+	public final void setFrequency(float frequency)
+	{
+		this.frequency = frequency;
+		alext.alEffectf(getALId(), ALExt.AL_RING_MODULATOR_FREQUENCY, RMath.clampValue(frequency, (float)ALExt.AL_RING_MODULATOR_MIN_FREQUENCY, ALExt.AL_RING_MODULATOR_MAX_FREQUENCY));
+		errorCheck();
 	}
 
 	/** Get ring modulator high-pass cutoff in Hertz. */
@@ -62,27 +78,12 @@ public class RingModulatorEffect extends OALEffect
 		return highPassCutoff;
 	}
 
-	/** Set ring modulator waveform. */
-	public final void setWaveform(WaveForm waveform)
-	{
-		this.waveForm = waveform;
-		alext.alEffecti(getALId(), ALExt.AL_RING_MODULATOR_WAVEFORM, waveform.alVal);
-	}
-	
-	/** Set frequency shifter frequency (0.0 to 8000.0). */
-	public final void setFrequency(float frequency)
-	{
-		this.frequency = frequency;
-		alext.alEffectf(getALId(), ALExt.AL_RING_MODULATOR_FREQUENCY, RMath.clampValue(frequency, 0.0f, 8000.0f));
-	}
-
 	/** Set ring modulator high-pass cutoff in Hertz (0.0 to 24000.0). */
 	public final void setHighPassCutoff(float highPassCutoff)
 	{
 		this.highPassCutoff = highPassCutoff;
-		alext.alEffectf(getALId(), ALExt.AL_RING_MODULATOR_HIGHPASS_CUTOFF, RMath.clampValue(highPassCutoff, 0.0f, 24000.0f));
+		alext.alEffectf(getALId(), ALExt.AL_RING_MODULATOR_HIGHPASS_CUTOFF, RMath.clampValue(highPassCutoff, (float)ALExt.AL_RING_MODULATOR_MIN_HIGHPASS_CUTOFF, ALExt.AL_RING_MODULATOR_MAX_HIGHPASS_CUTOFF));
+		errorCheck();
 	}
-
-
 
 }

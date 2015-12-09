@@ -85,10 +85,10 @@ public class VocalMorpherEffect extends OALEffect
 		super(system, ALExt.AL_EFFECT_VOCAL_MORPHER);
 		setPhonemeA(Phoneme.A);
 		setPhonemeB(Phoneme.ER);
-		setPhonemeACoarseTuning(0);
-		setPhonemeBCoarseTuning(0);
+		setPhonemeACoarseTuning(ALExt.AL_VOCAL_MORPHER_DEFAULT_PHONEMEA_COARSE_TUNING);
+		setPhonemeBCoarseTuning(ALExt.AL_VOCAL_MORPHER_DEFAULT_PHONEMEB_COARSE_TUNING);
 		setWaveform(WaveForm.SINUSOID);
-		setRate(1.41f);
+		setRate(ALExt.AL_VOCAL_MORPHER_DEFAULT_RATE);
 	}
 
 	/** Get morpher phoneme A. */
@@ -97,10 +97,26 @@ public class VocalMorpherEffect extends OALEffect
 		return phonemeA;
 	}
 
+	/** Set morpher phoneme A. */
+	public final void setPhonemeA(Phoneme phonemeA)
+	{
+		this.phonemeA = phonemeA;
+		alext.alEffecti(getALId(), ALExt.AL_VOCAL_MORPHER_PHONEMEA, phonemeA.alVal);
+		errorCheck();
+	}
+
 	/** Get morpher phoneme A coarse tuning in semitones. */
 	public final int getPhonemeACoarseTuning()
 	{
 		return phonemeACoarseTuning;
+	}
+
+	/** Set morpher phoneme A coarse tuning in semitones (-24 to 24). */
+	public final void setPhonemeACoarseTuning(int phonemeACoarseTuning)
+	{
+		this.phonemeACoarseTuning = phonemeACoarseTuning;
+		alext.alEffecti(getALId(), ALExt.AL_VOCAL_MORPHER_PHONEMEA_COARSE_TUNING, RMath.clampValue(phonemeACoarseTuning, ALExt.AL_VOCAL_MORPHER_MIN_PHONEMEA_COARSE_TUNING, ALExt.AL_VOCAL_MORPHER_MAX_PHONEMEA_COARSE_TUNING));
+		errorCheck();
 	}
 
 	/** Get morpher phoneme B. */
@@ -109,10 +125,26 @@ public class VocalMorpherEffect extends OALEffect
 		return phonemeB;
 	}
 
+	/** Set morpher phoneme B. */
+	public final void setPhonemeB(Phoneme phonemeB)
+	{
+		this.phonemeB = phonemeB;
+		alext.alEffecti(getALId(), ALExt.AL_VOCAL_MORPHER_PHONEMEB, phonemeB.alVal);
+		errorCheck();
+	}
+
 	/** Get morpher phoneme B coarse tuning in semitones. */
 	public final int getPhonemeBCoarseTuning()
 	{
 		return phonemeBCoarseTuning;
+	}
+
+	/** Set morpher phoneme B coarse tuning in semitones (-24 to 24). */
+	public final void setPhonemeBCoarseTuning(int phonemeBCoarseTuning)
+	{
+		this.phonemeBCoarseTuning = phonemeBCoarseTuning;
+		alext.alEffecti(getALId(), ALExt.AL_VOCAL_MORPHER_PHONEMEB_COARSE_TUNING, RMath.clampValue(phonemeBCoarseTuning, ALExt.AL_VOCAL_MORPHER_MIN_PHONEMEB_COARSE_TUNING, ALExt.AL_VOCAL_MORPHER_MAX_PHONEMEB_COARSE_TUNING));
+		errorCheck();
 	}
 
 	/** Get vocal morpher rate in Hertz. */
@@ -121,45 +153,18 @@ public class VocalMorpherEffect extends OALEffect
 		return rate;
 	}
 
-	/** Get morpher waveform. */
-	public final WaveForm getWaveform()
-	{
-		return waveForm;
-	}
-
-	/** Set morpher phoneme A. */
-	public final void setPhonemeA(Phoneme phonemeA)
-	{
-		this.phonemeA = phonemeA;
-		alext.alEffecti(getALId(), ALExt.AL_VOCAL_MORPHER_PHONEMEA, phonemeA.alVal);
-	}
-
-	/** Set morpher phoneme A coarse tuning in semitones (-24 to 24). */
-	public final void setPhonemeACoarseTuning(int phonemeACoarseTuning)
-	{
-		this.phonemeACoarseTuning = phonemeACoarseTuning;
-		alext.alEffecti(getALId(), ALExt.AL_VOCAL_MORPHER_PHONEMEA_COARSE_TUNING, RMath.clampValue(phonemeACoarseTuning, -24, 24));
-	}
-
-	/** Set morpher phoneme B. */
-	public final void setPhonemeB(Phoneme phonemeB)
-	{
-		this.phonemeB = phonemeB;
-		alext.alEffecti(getALId(), ALExt.AL_VOCAL_MORPHER_PHONEMEB, phonemeB.alVal);
-	}
-
-	/** Set morpher phoneme B coarse tuning in semitones (-24 to 24). */
-	public final void setPhonemeBCoarseTuning(int phonemeBCoarseTuning)
-	{
-		this.phonemeBCoarseTuning = phonemeBCoarseTuning;
-		alext.alEffecti(getALId(), ALExt.AL_VOCAL_MORPHER_PHONEMEB_COARSE_TUNING, RMath.clampValue(phonemeBCoarseTuning, -24, 24));
-	}
-
 	/** Set vocal morpher rate in Hertz (0.0 to 10.0). */
 	public final void setRate(float rate)
 	{
 		this.rate = rate;
-		alext.alEffectf(getALId(), ALExt.AL_VOCAL_MORPHER_RATE, RMath.clampValue(rate, 0.0f, 10.0f));
+		alext.alEffectf(getALId(), ALExt.AL_VOCAL_MORPHER_RATE, RMath.clampValue(rate, (float)ALExt.AL_VOCAL_MORPHER_MIN_RATE, ALExt.AL_VOCAL_MORPHER_MAX_RATE));
+		errorCheck();
+	}
+
+	/** Get morpher waveform. */
+	public final WaveForm getWaveform()
+	{
+		return waveForm;
 	}
 
 	/** Set morpher waveform. */
@@ -167,6 +172,7 @@ public class VocalMorpherEffect extends OALEffect
 	{
 		this.waveForm = waveform;
 		alext.alEffecti(getALId(), ALExt.AL_VOCAL_MORPHER_WAVEFORM, waveform.alVal);
+		errorCheck();
 	}
 	
 }

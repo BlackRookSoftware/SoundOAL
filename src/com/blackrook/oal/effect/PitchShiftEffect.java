@@ -26,8 +26,8 @@ public class PitchShiftEffect extends OALEffect
 	public PitchShiftEffect(OALSystem system)
 	{
 		super(system, ALExt.AL_EFFECT_PITCH_SHIFTER);
-		setCoarseTuning(12);
-		setFineTuning(0);
+		setCoarseTuning(ALExt.AL_PITCH_SHIFTER_DEFAULT_COARSE_TUNE);
+		setFineTuning(ALExt.AL_PITCH_SHIFTER_DEFAULT_FINE_TUNE);
 	}
 
 	/** Pitch shifter coarse tuning in semitones. */
@@ -36,24 +36,26 @@ public class PitchShiftEffect extends OALEffect
 		return coarse;
 	}
 
+	/** Pitch shifter coarse tuning in semitones (-12 to 12). */
+	public final void setCoarseTuning(int coarse)
+	{
+		this.coarse = coarse;
+		alext.alEffecti(getALId(), ALExt.AL_PITCH_SHIFTER_COARSE_TUNE, RMath.clampValue(coarse, ALExt.AL_PITCH_SHIFTER_MIN_COARSE_TUNE, ALExt.AL_PITCH_SHIFTER_MAX_COARSE_TUNE));
+		errorCheck();
+	}
+
 	/** Pitch shifter fine tuning in cents. */
 	public final int getFineTuning()
 	{
 		return fine;
 	}
 
-	/** Pitch shifter coarse tuning in semitones (-12 to 12). */
-	public final void setCoarseTuning(int coarse)
-	{
-		this.coarse = coarse;
-		alext.alEffecti(getALId(), ALExt.AL_PITCH_SHIFTER_COARSE_TUNE, RMath.clampValue(coarse, -12, 12));
-	}
-
 	/** Pitch shifter fine tuning in cents (-50 to 50). */
 	public final void setFineTuning(int fine)
 	{
 		this.fine = fine;
-		alext.alEffecti(getALId(), ALExt.AL_PITCH_SHIFTER_FINE_TUNE, RMath.clampValue(fine, -50, 50));
+		alext.alEffecti(getALId(), ALExt.AL_PITCH_SHIFTER_FINE_TUNE, RMath.clampValue(fine, ALExt.AL_PITCH_SHIFTER_MIN_FINE_TUNE, ALExt.AL_PITCH_SHIFTER_MAX_FINE_TUNE));
+		errorCheck();
 	}
 	
 }

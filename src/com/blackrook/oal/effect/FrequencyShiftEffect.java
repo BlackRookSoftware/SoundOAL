@@ -39,7 +39,7 @@ public class FrequencyShiftEffect extends OALEffect
 	public FrequencyShiftEffect(OALSystem system)
 	{
 		super(system, ALExt.AL_EFFECT_FREQUENCY_SHIFTER);
-		setFrequency(0f);
+		setFrequency((float)ALExt.AL_FREQUENCY_SHIFTER_DEFAULT_FREQUENCY);
 		setLeftDirection(Direction.DOWN);
 		setRightDirection(Direction.DOWN);
 	}
@@ -50,23 +50,18 @@ public class FrequencyShiftEffect extends OALEffect
 		return frequency;
 	}
 
-	/** Get frequency shifter left direction. */
-	public final Direction getLeftDir()
-	{
-		return leftDir;
-	}
-
-	/** Get frequency shifter right direction. */
-	public final Direction getRightDir()
-	{
-		return rightDir;
-	}
-
 	/** Set frequency shifter frequency (0.0 to 24000.0). */
 	public final void setFrequency(float frequency)
 	{
 		this.frequency = frequency;
-		alext.alEffectf(getALId(), ALExt.AL_FREQUENCY_SHIFTER_FREQUENCY, RMath.clampValue(frequency, 0.0f, 24000.0f));
+		alext.alEffectf(getALId(), ALExt.AL_FREQUENCY_SHIFTER_FREQUENCY, RMath.clampValue(frequency, (float)ALExt.AL_FREQUENCY_SHIFTER_MIN_FREQUENCY, ALExt.AL_FREQUENCY_SHIFTER_MAX_FREQUENCY));
+		errorCheck();
+	}
+
+	/** Get frequency shifter left direction. */
+	public final Direction getLeftDirection()
+	{
+		return leftDir;
 	}
 
 	/** 
@@ -77,6 +72,13 @@ public class FrequencyShiftEffect extends OALEffect
 	{
 		this.leftDir = leftDir;
 		alext.alEffecti(getALId(), ALExt.AL_FREQUENCY_SHIFTER_LEFT_DIRECTION, leftDir.alVal);
+		errorCheck();
+	}
+
+	/** Get frequency shifter right direction. */
+	public final Direction getRightDirection()
+	{
+		return rightDir;
 	}
 
 	/** 
@@ -87,6 +89,7 @@ public class FrequencyShiftEffect extends OALEffect
 	{
 		this.rightDir = rightDir;
 		alext.alEffecti(getALId(), ALExt.AL_FREQUENCY_SHIFTER_RIGHT_DIRECTION, rightDir.alVal);
+		errorCheck();
 	}
 	
 }

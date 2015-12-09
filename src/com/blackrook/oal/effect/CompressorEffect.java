@@ -23,7 +23,7 @@ public class CompressorEffect extends OALEffect
 	public CompressorEffect(OALSystem system)
 	{
 		super(system, ALExt.AL_EFFECT_COMPRESSOR);
-		setEnabled(true);
+		setEnabled(ALExt.AL_COMPRESSOR_DEFAULT_ONOFF != 0);
 	}
 
 	/** Is the effect enabled? */
@@ -36,7 +36,8 @@ public class CompressorEffect extends OALEffect
 	public final void setEnabled(boolean enabled)
 	{
 		this.enabled = enabled;
-		alext.alEffecti(getALId(), ALExt.AL_COMPRESSOR_ONOFF, enabled?1:0);
+		alext.alEffecti(getALId(), ALExt.AL_COMPRESSOR_ONOFF, enabled ? 1 : 0);
+		errorCheck();
 	}
 	
 	

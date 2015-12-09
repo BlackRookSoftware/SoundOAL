@@ -42,19 +42,19 @@ public class EqualizerEffect extends OALEffect
 	public EqualizerEffect(OALSystem system)
 	{
 		super(system, ALExt.AL_EFFECT_EQUALIZER);
-		setLowGain(1);
-		setLowCutoff(200);
+		setLowGain(ALExt.AL_EQUALIZER_DEFAULT_LOW_GAIN);
+		setLowCutoff(ALExt.AL_EQUALIZER_DEFAULT_LOW_CUTOFF);
 		
-		setMid1Gain(1);
-		setMid1Center(500);
-		setMid1Width(1);
+		setMid1Gain(ALExt.AL_EQUALIZER_DEFAULT_MID1_GAIN);
+		setMid1Center(ALExt.AL_EQUALIZER_DEFAULT_MID1_CENTER);
+		setMid1Width(ALExt.AL_EQUALIZER_DEFAULT_MID1_WIDTH);
 		
-		setMid2Gain(1);
-		setMid2Center(3000);
-		setMid2Width(1);
+		setMid2Gain(ALExt.AL_EQUALIZER_DEFAULT_MID2_GAIN);
+		setMid2Center(ALExt.AL_EQUALIZER_DEFAULT_MID2_CENTER);
+		setMid2Width(ALExt.AL_EQUALIZER_DEFAULT_MID2_WIDTH);
 		
-		setHighGain(1);
-		setHighCutoff(6000);
+		setHighGain(ALExt.AL_EQUALIZER_DEFAULT_HIGH_GAIN);
+		setHighCutoff(ALExt.AL_EQUALIZER_DEFAULT_HIGH_CUTOFF);
 	}
 
 	/** Get equalizer high cutoff in Hertz. */
@@ -63,10 +63,26 @@ public class EqualizerEffect extends OALEffect
 		return highCutoff;
 	}
 
+	/** Set equalizer high cutoff in Hertz (4000.0 to 16000.0). */
+	public final void setHighCutoff(float highCutoff) 
+	{
+		this.highCutoff = highCutoff;
+		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_HIGH_CUTOFF, RMath.clampValue(highCutoff, ALExt.AL_EQUALIZER_MIN_HIGH_CUTOFF, ALExt.AL_EQUALIZER_MAX_HIGH_CUTOFF));
+		errorCheck();
+	}
+
 	/** Get equalizer high gain. */
 	public final float getHighGain() 
 	{
 		return highGain;
+	}
+
+	/** Set equalizer high gain (0.126 to 7.943). */
+	public final void setHighGain(float highGain)
+	{
+		this.highGain = highGain;
+		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_HIGH_GAIN, RMath.clampValue(highGain, ALExt.AL_EQUALIZER_MIN_HIGH_GAIN, ALExt.AL_EQUALIZER_MAX_HIGH_GAIN));
+		errorCheck();
 	}
 
 	/** Get equalizer low cutoff in Hertz. */
@@ -75,10 +91,26 @@ public class EqualizerEffect extends OALEffect
 		return lowCutoff;
 	}
 
+	/** Set equalizer low cutoff in Hertz (50.0 to 800.0). */
+	public final void setLowCutoff(float lowCutoff) 
+	{
+		this.lowCutoff = lowCutoff;
+		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_LOW_CUTOFF, RMath.clampValue(lowCutoff, ALExt.AL_EQUALIZER_MIN_LOW_CUTOFF, ALExt.AL_EQUALIZER_MAX_LOW_CUTOFF));
+		errorCheck();
+	}
+
 	/** Get equalizer low gain. */
 	public final float getLowGain() 
 	{
 		return lowGain;
+	}
+
+	/** Set equalizer low gain (0.126 to 7.943). */
+	public final void setLowGain(float lowGain) 
+	{
+		this.lowGain = lowGain;
+		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_LOW_GAIN, RMath.clampValue(lowGain, ALExt.AL_EQUALIZER_MIN_LOW_GAIN, ALExt.AL_EQUALIZER_MAX_LOW_GAIN));
+		errorCheck();
 	}
 
 	/** Get equalizer first mid center in Hertz. */
@@ -87,10 +119,26 @@ public class EqualizerEffect extends OALEffect
 		return mid1Center;
 	}
 
+	/** Set equalizer first mid center in Hertz (200.0 to 3000.0). */
+	public final void setMid1Center(float mid1Center) 
+	{
+		this.mid1Center = mid1Center;
+		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_MID1_CENTER, RMath.clampValue(mid1Center, ALExt.AL_EQUALIZER_MIN_MID1_CENTER, ALExt.AL_EQUALIZER_MAX_MID1_CENTER));
+		errorCheck();
+	}
+
 	/** Get equalizer first mid gain. */
 	public final float getMid1Gain() 
 	{
 		return mid1Gain;
+	}
+
+	/** Set equalizer first mid gain (0.126 to 7.943). */
+	public final void setMid1Gain(float mid1Gain) 
+	{
+		this.mid1Gain = mid1Gain;
+		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_MID1_GAIN, RMath.clampValue(mid1Gain, ALExt.AL_EQUALIZER_MIN_MID1_GAIN, ALExt.AL_EQUALIZER_MAX_MID1_GAIN));
+		errorCheck();
 	}
 
 	/** Get equalizer first mid width. */
@@ -99,10 +147,26 @@ public class EqualizerEffect extends OALEffect
 		return mid1Width;
 	}
 
+	/** Set equalizer first mid width (0.01 to 1.0). */
+	public final void setMid1Width(float mid1Width) 
+	{
+		this.mid1Width = mid1Width;
+		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_MID1_WIDTH, RMath.clampValue(mid1Width, ALExt.AL_EQUALIZER_MIN_MID1_WIDTH, ALExt.AL_EQUALIZER_MAX_MID1_WIDTH));
+		errorCheck();
+	}
+
 	/** Get equalizer second mid center in Hertz. */
 	public final float getMid2Center() 
 	{
 		return mid2Center;
+	}
+
+	/** Set equalizer second mid center in Hertz (1000.0 to 8000.0). */
+	public final void setMid2Center(float mid2Center) 
+	{
+		this.mid2Center = mid2Center;
+		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_MID2_CENTER, RMath.clampValue(mid2Center, ALExt.AL_EQUALIZER_MIN_MID2_CENTER, ALExt.AL_EQUALIZER_MAX_MID2_CENTER));
+		errorCheck();
 	}
 
 	/** Get equalizer second mid gain. */
@@ -111,80 +175,26 @@ public class EqualizerEffect extends OALEffect
 		return mid2Gain;
 	}
 
+	/** Set equalizer second mid gain (0.126 to 7.943). */
+	public final void setMid2Gain(float mid2Gain) 
+	{
+		this.mid2Gain = mid2Gain;
+		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_MID2_GAIN, RMath.clampValue(mid2Gain, ALExt.AL_EQUALIZER_MIN_MID2_GAIN, ALExt.AL_EQUALIZER_MAX_MID2_GAIN));
+		errorCheck();
+	}
+
 	/** Get equalizer second mid width. */
 	public final float getMid2Width() 
 	{
 		return mid2Width;
 	}
 
-	/** Set equalizer high cutoff in Hertz (4000.0 to 16000.0). */
-	public final void setHighCutoff(float highCutoff) 
-	{
-		this.highCutoff = highCutoff;
-		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_HIGH_CUTOFF, RMath.clampValue(highCutoff, 4000.0f, 16000.0f));
-	}
-
-	/** Set equalizer high gain (0.126 to 7.943). */
-	public final void setHighGain(float highGain)
-	{
-		this.highGain = highGain;
-		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_HIGH_GAIN, RMath.clampValue(highGain, 0.126f, 7.943f));
-	}
-
-	/** Set equalizer low cutoff in Hertz (50.0 to 800.0). */
-	public final void setLowCutoff(float lowCutoff) 
-	{
-		this.lowCutoff = lowCutoff;
-		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_LOW_CUTOFF, RMath.clampValue(lowCutoff, 50.0f, 800.0f));
-	}
-
-	/** Set equalizer low gain (0.126 to 7.943). */
-	public final void setLowGain(float lowGain) 
-	{
-		this.lowGain = lowGain;
-		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_LOW_GAIN, RMath.clampValue(lowGain, 0.126f, 7.943f));
-	}
-
-	/** Set equalizer first mid center in Hertz (200.0 to 3000.0). */
-	public final void setMid1Center(float mid1Center) 
-	{
-		this.mid1Center = mid1Center;
-		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_MID1_CENTER, RMath.clampValue(mid1Center, 200.0f, 3000.0f));
-	}
-
-	/** Set equalizer first mid gain (0.126 to 7.943). */
-	public final void setMid1Gain(float mid1Gain) 
-	{
-		this.mid1Gain = mid1Gain;
-		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_MID1_GAIN, RMath.clampValue(mid1Gain, 0.126f, 7.943f));
-	}
-
-	/** Set equalizer first mid width (0.01 to 1.0). */
-	public final void setMid1Width(float mid1Width) 
-	{
-		this.mid1Width = mid1Width;
-		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_MID1_WIDTH, RMath.clampValue(mid1Width, 0.1f, 1.0f));
-	}
-
-	/** Set equalizer second mid center in Hertz (1000.0 to 8000.0). */
-	public final void setMid2Center(float mid2Center) 
-	{
-		this.mid2Center = mid2Center;
-		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_MID2_CENTER, RMath.clampValue(mid2Center, 1000.0f, 8000.0f));
-	}
-
-	/** Set equalizer second mid gain (0.126 to 7.943). */
-	public final void setMid2Gain(float mid2Gain) 
-	{
-		this.mid2Gain = mid2Gain;
-		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_MID2_GAIN, RMath.clampValue(mid2Gain, 0.126f, 7.943f));
-	}
-
 	/** Set equalizer second mid width (0.01 to 1.0). */
 	public final void setMid2Width(float mid2Width) 
 	{
 		this.mid2Width = mid2Width;
-		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_MID2_WIDTH, RMath.clampValue(mid2Width, 0.1f, 1.0f));
+		alext.alEffectf(getALId(), ALExt.AL_EQUALIZER_MID2_WIDTH, RMath.clampValue(mid2Width, ALExt.AL_EQUALIZER_MIN_MID2_WIDTH, ALExt.AL_EQUALIZER_MAX_MID2_WIDTH));
+		errorCheck();
 	}
 	
 }

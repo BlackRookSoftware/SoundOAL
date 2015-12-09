@@ -21,7 +21,8 @@ import com.jogamp.openal.ALExt;
  */
 public abstract class OALObject
 {
-	
+	/** Link to AL instance. */
+	protected OALSystem system;
 	/** Link to AL instance. */
 	protected AL al;
 	/** Link to ALC instance. */
@@ -39,10 +40,10 @@ public abstract class OALObject
 	 */
 	public OALObject(OALSystem system)
 	{
+		this.system = system;
 		this.al = system.getAL();
 		this.alc = system.getALC();
 		this.alext = system.getALExt();
-		alId = -1;
 		alId = alloc();
 	}
 	
@@ -51,6 +52,7 @@ public abstract class OALObject
 		clearError(); 
 		int a = allocate(); 
 		allocated = true; 
+		system.addObjectReference(this);
 		return a;
 	}
 
@@ -62,10 +64,9 @@ public abstract class OALObject
 		return alId;
 	}
 
-	@Override
-	public int hashCode()
+	public boolean equals(OALObject obj) 
 	{
-		return alId;
+		return getClass().equals(obj.getClass()) && alId == obj.alId;
 	}
 
 	/**
@@ -74,10 +75,13 @@ public abstract class OALObject
 	 */
 	public final void destroy() throws SoundException 
 	{
-		if (allocated) 
-			free(); 
-		allocated = false;
+		if (allocated)
+		{
+			free();
+			system.removeObjectReference(this);
 		}
+		allocated = false;
+	}
 
 	/**	 
 	 * Allocates a new type of this object in OpenAL.
@@ -106,11 +110,11 @@ public abstract class OALObject
 	 * Convenience method for checking for an OpenAL error and throwing a SoundException
 	 * if an error is raised. 
 	 */
-	protected void errorCheck(OALObject obj)
+	protected final void errorCheck()
 	{
 		int error = al.alGetError();
 		if (error != AL.AL_NO_ERROR)
-			throw new SoundException("Object "+obj.getClass().getSimpleName()+": AL returned \""+al.alGetString(error)+"\"");
+			throw new SoundException("Object " + getClass().getSimpleName() + ": AL returned \"" + al.alGetString(error) + "\"");
 	}
 	
 	/**

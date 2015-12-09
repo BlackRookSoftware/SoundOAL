@@ -116,7 +116,7 @@ public final class OALSource extends OALObject
 	{
 		int[] STATE_NUMBER = new int[1];
 		al.alGenSources(1, STATE_NUMBER, 0);
-		errorCheck(this);
+		errorCheck();
 		return STATE_NUMBER[0];
 	}
 	
@@ -126,11 +126,13 @@ public final class OALSource extends OALObject
 	@Override
 	protected final void free()
 	{
-		if (isPlaying()) stop();
-		dequeueAllBuffers();
+		if (isPlaying()) 
+			stop();
+		setBuffer(null);
 		int[] STATE_NUMBER = new int[1];
 		STATE_NUMBER[0] = getALId();
 		al.alDeleteSources(1, STATE_NUMBER, 0);
+		errorCheck();
 	}
 
 	/**
@@ -138,27 +140,27 @@ public final class OALSource extends OALObject
 	 */
 	public void reset()
 	{
-		setPosition(0,0,0);
-		setVelocity(0,0,0);
-		setDirection(0,0,0);
+		setPosition(0, 0, 0);
+		setVelocity(0, 0, 0);
+		setDirection(0, 0, 0);
+		setAutoVelocity(false);
 		setLooping(false);
 		setRelative(false);
-		setPitch(1);
-		setGain(1);
-		setRolloff(1);
+		setPitch(1.0f);
+		setGain(1.0f);
+		setRolloff(1.0f);
 		setFilter(null);
-		setMinGain(0);
-		setMaxGain(1);
-		setReferenceDistance(1);
+		setMinGain(0.0f);
+		setMaxGain(1.0f);
+		setReferenceDistance(1.0f);
 		setMaxDistance(Float.MAX_VALUE);
-		setInnerConeAngle(360);
-		setOuterConeAngle(360);
-		setOuterConeGain(0);
+		setInnerConeAngle(360f);
+		setOuterConeAngle(360f);
+		setOuterConeGain(0f);
 		for (int i = 0; i < effectSlots; i++)
 			setEffectSlot(i, null, null);
 		setFilter(null);
 		setBuffer(null);
-		dequeueAllBuffers();
 	}
 	
 	/**
@@ -196,6 +198,7 @@ public final class OALSource extends OALObject
 			slot,
 			wetFilter == null ? ALExt.AL_FILTER_NULL : wetFilter.getALId()
 		);
+		errorCheck();
 		auxEffectSlots[slot] = effectSlot;
 		auxEffectSlotFilters[slot] = wetFilter;
 	}
@@ -208,6 +211,7 @@ public final class OALSource extends OALObject
 	{
 		this.dryFilter = dryFilter;
 		al.alSourcei(getALId(), ALExt.AL_DIRECT_FILTER, dryFilter == null ? ALExt.AL_FILTER_NULL : dryFilter.getALId());
+		errorCheck();
 	}
 	
 	/**
@@ -225,6 +229,7 @@ public final class OALSource extends OALObject
 		position[1] = y;
 		position[2] = z;
 		al.alSourcefv(getALId(), AL.AL_POSITION, position, 0);
+		errorCheck();
 	}
 
 	/**
@@ -238,6 +243,7 @@ public final class OALSource extends OALObject
 
 		System.arraycopy(f, 0, position, 0, Math.min(f.length, 3));
 		al.alSourcefv(getALId(), AL.AL_POSITION, position, 0);
+		errorCheck();
 	}
 	
 	/**
@@ -252,6 +258,7 @@ public final class OALSource extends OALObject
 		velocity[1] = y;
 		velocity[2] = z;
 		al.alSourcefv(getALId(), AL.AL_VELOCITY, velocity, 0);
+		errorCheck();
 	}
 
 	/**
@@ -262,6 +269,7 @@ public final class OALSource extends OALObject
 	{
 		System.arraycopy(f,0,velocity,0,Math.min(f.length,3));
 		al.alSourcefv(getALId(), AL.AL_VELOCITY, velocity, 0);
+		errorCheck();
 	}
 		
 	/**
@@ -276,6 +284,7 @@ public final class OALSource extends OALObject
 		direction[1] = y;
 		direction[2] = z;
 		al.alSourcefv(getALId(), AL.AL_DIRECTION, direction, 0);
+		errorCheck();
 	}
 
 	/**
@@ -286,6 +295,7 @@ public final class OALSource extends OALObject
 	{
 		System.arraycopy(f, 0, direction, 0, Math.min(f.length, 3));
 		al.alSourcefv(getALId(), AL.AL_DIRECTION, direction, 0);
+		errorCheck();
 	}
 	
 	/**
@@ -296,6 +306,7 @@ public final class OALSource extends OALObject
 	{
 		gain = RMath.clampValue(f, 0f, 1f);
 		al.alSourcef(getALId(), AL.AL_GAIN, gain);
+		errorCheck();
 	}
 
 	/**
@@ -307,6 +318,7 @@ public final class OALSource extends OALObject
 	{
 		minGain = RMath.clampValue(f, 0f, 1f);
 		al.alSourcef(getALId(), AL.AL_MIN_GAIN, minGain);
+		errorCheck();
 	}
 
 	/**
@@ -318,6 +330,7 @@ public final class OALSource extends OALObject
 	{
 		maxGain = RMath.clampValue(f, 0f, 1f);
 		al.alSourcef(getALId(), AL.AL_MAX_GAIN, maxGain);
+		errorCheck();
 	}
 
 	/**
@@ -328,6 +341,7 @@ public final class OALSource extends OALObject
 	{
 		pitch = Math.max(0, f);
 		al.alSourcef(getALId(), AL.AL_PITCH, pitch);
+		errorCheck();
 	}
 
 	/**
@@ -358,6 +372,7 @@ public final class OALSource extends OALObject
 	{
 		rolloff = Math.max(0, f);
 		al.alSourcef(getALId(), AL.AL_ROLLOFF_FACTOR, rolloff);
+		errorCheck();
 	}
 
 	/**
@@ -369,6 +384,7 @@ public final class OALSource extends OALObject
 	{
 		outerConeGain = f;
 		al.alSourcef(getALId(), AL.AL_CONE_OUTER_GAIN, outerConeGain);
+		errorCheck();
 	}
 
 	/**
@@ -381,6 +397,7 @@ public final class OALSource extends OALObject
 	{
 		outerCone = f;
 		al.alSourcef(getALId(), AL.AL_CONE_OUTER_ANGLE, outerCone);
+		errorCheck();
 	}
 
 	/**
@@ -393,6 +410,7 @@ public final class OALSource extends OALObject
 	{
 		innerCone = f;
 		al.alSourcef(getALId(), AL.AL_CONE_INNER_ANGLE, innerCone);
+		errorCheck();
 	}
 
 	/**
@@ -405,6 +423,7 @@ public final class OALSource extends OALObject
 	{
 		maxDistance = Math.max(0, f);
 		al.alSourcef(getALId(), AL.AL_MAX_DISTANCE, maxDistance);
+		errorCheck();
 	}
 
 	/**
@@ -417,6 +436,7 @@ public final class OALSource extends OALObject
 	{
 		referenceDistance = Math.max(0, f);
 		al.alSourcef(getALId(),	AL.AL_REFERENCE_DISTANCE, referenceDistance);
+		errorCheck();
 	}
 
 	/**
@@ -427,6 +447,7 @@ public final class OALSource extends OALObject
 	{
 		looping = loop;
 		al.alSourcei(getALId(), AL.AL_LOOPING, looping ? AL.AL_TRUE : AL.AL_FALSE);
+		errorCheck();
 	}
 	
 	/**
@@ -436,6 +457,7 @@ public final class OALSource extends OALObject
 	{
 		relative = r;
 		al.alSourcei(getALId(), AL.AL_SOURCE_RELATIVE, relative ? AL.AL_TRUE : AL.AL_FALSE);
+		errorCheck();
 	}
 
 	/**
@@ -538,7 +560,7 @@ public final class OALSource extends OALObject
 			STATE_DEQUEUE[0] = out.getALId();
 			clearError();
 			al.alSourceUnqueueBuffers(getALId(), 1, STATE_DEQUEUE, 0);
-			errorCheck(this);
+			errorCheck();
 			fireSourceBufferDequeuedEvent(this, out);
 		}
 		return out;
@@ -585,7 +607,7 @@ public final class OALSource extends OALObject
 			STATE_ENQUEUE[0] = b.getALId();
 			clearError();
 			al.alSourceQueueBuffers(getALId(), 1, STATE_ENQUEUE, 0);
-			errorCheck(this);
+			errorCheck();
 			bufferQueue.add(b);
 			fireSourceBufferEnqueuedEvent(this, b);
 		}
@@ -606,11 +628,13 @@ public final class OALSource extends OALObject
 		if (b == null)
 		{
 			al.alSourcei(getALId(), AL.AL_BUFFER, 0);
+			errorCheck();
 			buffer = null;
 		}
 		else
 		{
 			al.alSourcei(getALId(), AL.AL_BUFFER, b.getALId());
+			errorCheck();
 			buffer = b;
 		}
 	}
@@ -622,6 +646,7 @@ public final class OALSource extends OALObject
 	{
 		int[] out = new int[1];
 		al.alGetSourcei(getALId(), AL.AL_BUFFERS_QUEUED, out, 0);
+		errorCheck();
 		return out[0];
 	}
 	
@@ -633,6 +658,7 @@ public final class OALSource extends OALObject
 	{
 		int[] out = new int[1];  
 		al.alGetSourcei(getALId(), AL.AL_BUFFERS_PROCESSED, out, 0);
+		errorCheck();
 		return out[0];
 	}
 	
@@ -717,7 +743,9 @@ public final class OALSource extends OALObject
 	}
 
 	/**
-	 * Waits for this Source to stop playing.
+	 * Makes the calling thread wait for this source to stop playing.
+	 * Pausing this does not make the thread continue.
+	 * @see #stop()
 	 */
 	public void waitForEnd()
 	{
@@ -726,15 +754,30 @@ public final class OALSource extends OALObject
 	}
 	
 	/** 
-	 * Plays this source. 
+	 * Plays this source.
+	 * This does nothing if this is not bound to a buffer.
 	 */
 	public void play()
 	{
 		if (isBoundToABuffer())
 		{
 			al.alSourcePlay(getALId());
+			errorCheck();
 			fireSourcePlayedEvent(this);
 		}
+	}
+		
+	/** 
+	 * Plays this source and makes the calling thread wait until it ends.
+	 * Pausing this does not make the thread continue.
+	 * @see #play()
+	 * @see #waitForEnd()
+	 * @see #stop()
+	 */
+	public void playAndWait()
+	{
+		play();
+		waitForEnd();
 	}
 		
 	/** 
@@ -745,6 +788,7 @@ public final class OALSource extends OALObject
 		if (isBoundToABuffer())
 		{
 			al.alSourcePause(getALId());
+			errorCheck();
 			fireSourcePausedEvent(this);
 		}
 	}
@@ -758,6 +802,7 @@ public final class OALSource extends OALObject
 		{
 			boolean event = !isStopped();
 			al.alSourceStop(getALId());
+			errorCheck();
 			if (event)
 				fireSourceStoppedEvent(this);
 		}
@@ -769,6 +814,7 @@ public final class OALSource extends OALObject
 		if (isBoundToABuffer())
 		{
 			al.alSourceRewind(getALId());
+			errorCheck();
 			fireSourceRewoundEvent(this);
 		}
 	}
@@ -809,6 +855,7 @@ public final class OALSource extends OALObject
 	protected final int getState()
 	{
 		al.alGetSourcei(getALId(), AL.AL_SOURCE_STATE, STATE_BUFFER, 0);
+		errorCheck();
 		return STATE_BUFFER[0];		
 	}
 
@@ -822,11 +869,6 @@ public final class OALSource extends OALObject
 	}
 
 	@Override
-	public int hashCode()
-	{
-		return getALId();
-	}
-	
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder();

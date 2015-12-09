@@ -12,9 +12,7 @@ package com.blackrook.oal;
 
 import java.io.IOException;
 
-import com.blackrook.commons.ObjectPair;
-import com.blackrook.commons.hash.HashMap;
-import com.blackrook.commons.list.List;
+import com.blackrook.commons.hash.Hash;
 import com.blackrook.oal.effect.AutowahEffect;
 import com.blackrook.oal.effect.ChorusEffect;
 import com.blackrook.oal.effect.CompressorEffect;
@@ -46,10 +44,6 @@ import com.jogamp.openal.ALFactory;
  */
 public final class OALSystem
 {
-	private static boolean ONE_SPAWNED = false;
-	public static final String DEVICE_DEFAULT = "Default";
-	public static final String CONTEXT_DEFAULT = "Default";
-	
 	/** System AL instance. */
 	private AL al;
 	/** System ALC instance. */
@@ -57,12 +51,20 @@ public final class OALSystem
 	/** System ALExt instance. */
 	private ALExt alext;
 
-	/** Environment listener. */
+	/** This device. */
+	private ALCdevice alcDevice;
+	/** This context instance. */
+	private ALCcontext alcContext;
+	/** Distance model. */
+	private DistanceModel currentDistanceModel;
+
+	/** Listener. */
 	private OALListener listener;
-	/** Device:Context table. */
-	private HashMap<String,Device> deviceTable;
-	/** Current context. */
-	private Context currentDeviceContext;
+	/** Object references. */
+	private Hash<OALObject> createdObjects;
+
+	/** Maximum effect slots per source. */
+	private int maxEffectSlots;
 	
 	/**
 	 * Creates a new SoundSystem with the current device as a new sound device and 
@@ -80,26 +82,47 @@ public final class OALSystem
 	 */
 	public OALSystem(String deviceName)
 	{
-		if (ONE_SPAWNED)
-			throw new SoundException("An OALSoundSystem has already been spawned. You cannot spawn another.");
-
-		ONE_SPAWNED = true;
-		
 		al = ALFactory.getAL();
 		alc = ALFactory.getALC();
 		alext = ALFactory.getALExt();
+		createdObjects = new Hash<>();
 		
-		deviceTable = new HashMap<String, Device>(3);
+		String dname = deviceName != null ? "device \""+deviceName+"\"" : "default device";
 		
-		createNewDevice(deviceName);
-		if (deviceName == null)
-			deviceName = DEVICE_DEFAULT;
-		createNewContext(deviceName, CONTEXT_DEFAULT);
-		makeContextCurrent(deviceName, CONTEXT_DEFAULT);
-		
+		// create device.
+		alcDevice = alc.alcOpenDevice(deviceName);
+		if (alcDevice == null)
+			throw new SoundSystemException("The " + dname + " couldn't be opened.");
+
+		alcContext = alc.alcCreateContext(alcDevice, null);
+		if (alcContext == null)
+			throw new SoundSystemException("The context for " + dname + " couldn't be created.");				
+
+		if (!alc.alcMakeContextCurrent(alcContext))
+			throw new SoundSystemException("The context for " + dname + " couldn't be made current.");
+
 		listener = new OALListener(al, alc);
+		
+		// get device defaults
+		maxEffectSlots = getALCInteger(ALExt.ALC_MAX_AUXILIARY_SENDS);
 	}
 	
+	/**
+	 * Returns a list of all devices on this system.
+	 */
+	public static String[] getDeviceNames()
+	{
+		return ALFactory.getALC().alcGetDeviceSpecifiers(); 
+	}
+
+	/**
+	 * Returns a list of all capture devices on this system.
+	 */
+	public static String[] getCaptureDeviceNames()
+	{
+		return ALFactory.getALC().alcGetCaptureDeviceSpecifiers(); 
+	}
+
 	AL getAL()
 	{
 		return al;
@@ -115,113 +138,34 @@ public final class OALSystem
 		return alext;
 	}
 
-	/**
-	 * Creates and opens a new device in this SoundSystem.
-	 * NOTE: Passing 'null' as the device name will create a new 
-	 * system with the current context. Does nothing if the device is already made.
-	 * @param deviceName the name of the device.
-	 * @throws SoundSystemException if the device couldn't be opened.
-	 */
-	public void createNewDevice(String deviceName)
+	void addObjectReference(OALObject object)
 	{
-		ALCdevice alcd = alc.alcOpenDevice(deviceName);
-		if (alcd == null)
-			throw new SoundSystemException("The device '"+deviceName+"' couldn't be opened.");
-		Device d = new Device(alcd);
-		if (deviceName == null)
-			deviceName = DEVICE_DEFAULT;
-		deviceTable.put(deviceName, d);
-	}
-	
-	/**
-	 * Returns a list of all devices on this system.
-	 */
-	public String[] getDeviceNames()
-	{
-		return alc.alcGetDeviceSpecifiers(); 
-	}
-	
-	/**
-	 * Returns a list of all capture devices on this system.
-	 */
-	public String[] getCaptureDeviceNames()
-	{
-		return alc.alcGetCaptureDeviceSpecifiers(); 
-	}
-	
-	/**
-	 * Creates a new device context.
-	 * @param deviceName	the name of the device.
-	 * @param contextName	the name of the new context.
-	 * @throws NullPointerException if the deviceName or contextName is null.
-	 * @throws SoundSystemException if the device doesn't exist or the context can't be created.
-	 */
-	public void createNewContext(String deviceName, String contextName)
-	{
-		createNewContext(deviceName, contextName, 0);
+		createdObjects.put(object);
 	}
 
-	/**
-	 * Creates a new device context.
-	 * @param deviceName	the name of the device.
-	 * @param contextName	the name of the new context.
-	 * @param alType		the type of OpenAL argument to use for the context (0 = default).
-	 * @throws NullPointerException if the deviceName or contextName is null.
-	 * @throws SoundSystemException if the device doesn't exist or the context can't be created.
-	 */
-	public void createNewContext(String deviceName, String contextName, int alType)
+	void removeObjectReference(OALObject object)
 	{
-		if (alType == 0)
-		{
-			Device d = deviceTable.get(deviceName);
-			if (d == null)
-				throw new SoundSystemException("The device '"+deviceName+"' couldn't be retrieved.");				
-			ALCcontext alcc = alc.alcCreateContext(d.deviceRef,null);
-			if (alcc == null)
-				throw new SoundSystemException("The context '"+contextName+"' couldn't be created.");				
-			d.put(contextName,new Context(alcc));
-		}
-		else
-		{
-			Device d = deviceTable.get(deviceName);
-			if (d == null)
-				throw new SoundSystemException("The device '"+deviceName+"' couldn't be retrieved.");				
-			ALCcontext alcc = alc.alcCreateContext(d.deviceRef,new int[]{alType},0);
-			if (alcc == null)
-				throw new SoundSystemException("The context '"+contextName+"' couldn't be created.");				
-			d.put(contextName,new Context(alcc));
-		}
+		createdObjects.remove(object);
 	}
 	
-	/**
-	 * Makes a context the current context.
-	 * @param deviceName	the name of the device.
-	 * @param contextName	the name of the new context.
-	 * @throws NullPointerException if the deviceName or contextName is null.
-	 * @throws SoundSystemException if the device doesn't exist or the context can't be created.
-	 */
-	public void makeContextCurrent(String deviceName, String contextName)
+	// Returns an AL enum integer.
+	/*
+	private int getALInteger(int enumerant)
 	{
-		Device d = deviceTable.get(deviceName);
-		if (d == null)
-			throw new SoundSystemException("The device '"+contextName+"' couldn't be retrieved.");				
-		Context ctxt = d.get(contextName);
-		if (ctxt == null)
-			throw new SoundSystemException("The context '"+contextName+"' couldn't be retrieved.");
-		currentDeviceContext = ctxt;
-		if (!alc.alcMakeContextCurrent(ctxt.contextRef))
-			throw new SoundSystemException("The context '"+contextName+"' couldn't be made current.");
+		int[] OUTPUT = new int[1];
+		al.alGetIntegerv(enumerant, OUTPUT, 0);
+		getError();
+		return OUTPUT[0];
 	}
+	*/
 	
-	/**
-	 * Makes the current context 'null' (no output, no processing, no nothing).
-	 */
-	public void nullifyCurrentContext()
+	// Returns an ALC enum integer.
+	private int getALCInteger(int enumerant)
 	{
-		suspendCurrentContext();
-		currentDeviceContext.destroy();
-		currentDeviceContext = null;
-		alc.alcMakeContextCurrent(null);
+		int[] OUTPUT = new int[1];
+		alc.alcGetIntegerv(alcDevice, enumerant, 1, OUTPUT, 0);
+		getError();
+		return OUTPUT[0];
 	}
 	
 	/**
@@ -229,7 +173,8 @@ public final class OALSystem
 	 */
 	public void suspendCurrentContext()
 	{
-		alc.alcSuspendContext(currentDeviceContext.contextRef);
+		alc.alcSuspendContext(alcContext);
+		getError();
 	}
 	
 	/**
@@ -237,7 +182,8 @@ public final class OALSystem
 	 */
 	public void processCurrentContext()
 	{
-		alc.alcProcessContext(currentDeviceContext.contextRef);
+		alc.alcProcessContext(alcContext);
+		getError();
 	}
 	
 	/**
@@ -252,34 +198,15 @@ public final class OALSystem
 	
 	/**
 	 * Allocates a new source and assigns it internally to the current context.
-	 * @param	autoVelocity	set auto velocity to on for this Source.
-	 * @return 	the newly allocated source.
-	 * @throws 	SoundSystemException if the source can't be created or there is no current context selected.
+	 * @param autoVelocity if true, set auto velocity to on for this Source.
+	 * @return the newly allocated source.
+	 * @throws SoundSystemException if the source can't be created.
 	 */
 	public OALSource createSource(boolean autoVelocity)
 	{
-		if (currentDeviceContext == null)
-			throw new SoundSystemException("Cannot create Source for current context: no context.");
-		
-		OALSource s = new OALSource(this, autoVelocity, 2);
-		currentDeviceContext.sourceRefs.add(s);
-		return s;
+		return new OALSource(this, autoVelocity, maxEffectSlots);
 	}
 
-	/**
-	 * Returns a list of all of the Sources allocated in the current context.
-	 */
-	public OALSource[] returnAllSourcesInCurrentContext()
-	{
-		if (currentDeviceContext == null)
-			return new OALSource[0];
-		
-		List<OALSource> s = currentDeviceContext.sourceRefs;
-		OALSource[] sou = new OALSource[s.size()];
-		s.toArray(sou);
-		return sou;
-	}
-	
 	/**
 	 * Allocates a new buffer for loading data into. Buffers are independent
 	 * of device context. 
@@ -316,7 +243,17 @@ public final class OALSystem
 			throw new SoundException("OpenAL returned \""+al.alGetString(error)+"\".");
 	}
 	
-
+	/**
+	 * Convenience method for checking for an OpenAL error and throwing a SoundException
+	 * if an error is raised. 
+	 */
+	public void getContextError()
+	{
+		int error = alc.alcGetError(alcDevice);
+		if (error != AL.AL_NO_ERROR)
+			throw new SoundException("OpenAL returned \""+alc.alcGetString(alcDevice, error)+"\".");
+	}
+	
 	/**
 	 * Allocates a new buffer with data loaded into it. All of the sound data
 	 * readable by the SoundData instance is read into the buffer.
@@ -499,17 +436,6 @@ public final class OALSystem
 	}
 	
 	/**
-	 * Runs all Shut Down hooks, destroys all contexts and closes all open devices.
-	 */
-	public void shutDown()
-	{
-		nullifyCurrentContext();
-		for (ObjectPair<String, Device> devPair : deviceTable)
-			devPair.getValue().destroy();
-		ONE_SPAWNED = false;
-	}
-	
-	/**
 	 * Get the reference to this system's listener.
 	 * @return		the Listener of this environment.
 	 */
@@ -558,6 +484,7 @@ public final class OALSystem
 	public void setDopplerFactor(float f)
 	{
 		al.alDopplerFactor(f);
+		getError();
 	}
 
 	/**
@@ -575,6 +502,7 @@ public final class OALSystem
 	public void setSpeedOfSound(float s)
 	{
 		al.alDopplerVelocity(s);
+		getError();
 	}
 
 	/**
@@ -592,8 +520,9 @@ public final class OALSystem
 	 */
 	public void setDistanceModel(DistanceModel model)
 	{
-		currentDeviceContext.currentDistanceModel = model;
 		al.alDistanceModel(model.alVal);
+		getError();
+		currentDistanceModel = model;
 	}
 
 	/**
@@ -601,7 +530,28 @@ public final class OALSystem
 	 */
 	public DistanceModel getDistanceModel(DistanceModel model)
 	{
-		return currentDeviceContext.currentDistanceModel;
+		return currentDistanceModel;
+	}
+
+	/**
+	 * Runs all Shut Down hooks, destroys all contexts and closes all open devices.
+	 */
+	public void shutDown()
+	{
+		for (OALObject object : createdObjects)
+			object.destroy();
+		createdObjects.clear();
+		
+		//suspendCurrentContext();
+		alc.alcMakeContextCurrent(null);
+		getContextError();
+		alc.alcDestroyContext(alcContext);
+		getContextError();
+		alcContext = null;
+
+		alc.alcCloseDevice(alcDevice);
+		getContextError();
+		alcDevice = null;
 	}
 
 	@Override
@@ -609,49 +559,6 @@ public final class OALSystem
 	{
 		shutDown();
 		super.finalize();
-	}
-	
-	/**
-	 * Context encapsulator.
-	 */
-	public final class Context
-	{
-		ALCcontext contextRef;
-		List<OALSource> sourceRefs;
-		DistanceModel currentDistanceModel;
-		
-		Context(ALCcontext context)
-		{
-			contextRef = context;
-			sourceRefs = new List<OALSource>(16);
-			currentDistanceModel = DistanceModel.INVERSE_DISTANCE_CLAMPED;
-		}
-
-		void destroy()
-		{
-			alc.alcDestroyContext(contextRef);
-		}
-	}
-
-	/**
-	 * Device encapsulator.
-	 */
-	private final class Device extends HashMap<String,Context>
-	{
-		ALCdevice deviceRef;
-		
-		Device(ALCdevice device)
-		{
-			super(2);
-			this.deviceRef = device;
-		}
-		
-		void destroy()
-		{
-			for (ObjectPair<String, Context> cPair : this)
-				cPair.getValue().destroy();
-			alc.alcCloseDevice(deviceRef);
-		}
 	}
 	
 }
