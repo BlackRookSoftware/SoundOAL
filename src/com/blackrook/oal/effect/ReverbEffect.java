@@ -175,7 +175,7 @@ public class ReverbEffect extends OALEffect
 	public final void setDecayHFLimit(boolean limit)
 	{
 		hfLimit = limit;
-		alext.alEffectf(getALId(), ALExt.AL_REVERB_DECAY_HFLIMIT, limit ? AL.AL_TRUE : AL.AL_FALSE);
+		alext.alEffecti(getALId(), ALExt.AL_REVERB_DECAY_HFLIMIT, limit ? AL.AL_TRUE : AL.AL_FALSE);
 		errorCheck();
 	}
 
