@@ -129,4 +129,13 @@ public abstract class OALObject
 		super.finalize();
 	}
 	
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append(getClass().getSimpleName()).append(' ');
+		sb.append(getALId());
+		return sb.toString();
+	}
+
 }

@@ -40,7 +40,7 @@ public abstract class OALFilter extends OALObject
 	{
 		int[] STATE_NUMBER = new int[1];
 		STATE_NUMBER[0] = getALId(); 
-		alext.alDeleteFilters(getALId(), STATE_NUMBER, 0);
+		alext.alDeleteFilters(1, STATE_NUMBER, 0);
 		errorCheck();
 	}
 
