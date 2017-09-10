@@ -24,4 +24,9 @@ public class SoundException extends RuntimeException {
 	{
 		super(message);
 	}
+	
+	public SoundException(String message, Throwable cause)
+	{
+		super(message, cause);
+	}
 }

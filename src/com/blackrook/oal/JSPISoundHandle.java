@@ -22,24 +22,35 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import com.blackrook.commons.Common;
+import com.blackrook.oal.exception.SoundException;
 
 /**
  * Sound resource abstraction.
  * Wraps Java Sound SPI structures for ease of creating handles to decodable sound.
  * @author Matthew Tropiano
  */
-public class JSPISoundHandle implements Closeable
+public class JSPISoundHandle
 {
 	/** Name of this data stream. */
 	private String dataName;
-	
-	/** Audio format. */
-	private AudioFormat audioFormat;
 	/** Audio file format. */
 	private AudioFileFormat audioFileFormat;
-	/** Audio input stream. */
-	private AudioInputStream audioStream;
 
+	/** File resource. */
+	private File dataFile;
+	/** URL resource. */
+	private URL dataURL;
+	/** Byte resource. */
+	private byte[] dataBytes;
+	
+	protected JSPISoundHandle()
+	{
+		dataName = null;
+		dataFile = null;
+		dataURL = null;
+		dataBytes = null;
+	}
+	
 	/**
 	 * Opens a sound file for reading.
 	 * @param f the file.
@@ -48,7 +59,9 @@ public class JSPISoundHandle implements Closeable
 	 */
 	public JSPISoundHandle(File f) throws IOException, UnsupportedAudioFileException
 	{
-		this(f.getPath(), AudioSystem.getAudioInputStream(f));
+		dataName = f.getPath();
+		dataFile = f;
+		audioFileFormat = AudioSystem.getAudioFileFormat(dataFile);
 	}
 	
 	/**
@@ -59,33 +72,11 @@ public class JSPISoundHandle implements Closeable
 	 */
 	public JSPISoundHandle(URL url) throws IOException, UnsupportedAudioFileException
 	{
-		this(url.toString(), AudioSystem.getAudioInputStream(url));
+		dataName = url.toString();
+		dataURL = url;
+		audioFileFormat = AudioSystem.getAudioFileFormat(dataURL);
 	}
 
-	/**
-	 * Opens an input stream for reading.
-	 * @param name the name of this stream.
-	 * @param in the input stream.
-	 * @throws IOException if the stream can't be read.
-	 * @throws UnsupportedAudioFileException if the audio format is not recognized.
-	 */
-	public JSPISoundHandle(String name, InputStream in) throws IOException, UnsupportedAudioFileException
-	{
-		this(name, AudioSystem.getAudioInputStream(in));
-	}
-	
-	/**
-	 * Opens an input stream for reading.
-	 * @param name the name of this stream.
-	 * @param in the audio input stream.
-	 * @throws IOException if the stream can't be read.
-	 * @throws UnsupportedAudioFileException if the audio format is not recognized.
-	 */
-	public JSPISoundHandle(String name, AudioInputStream in) throws IOException, UnsupportedAudioFileException
-	{
-		initHandle(name, in);
-	}
-	
 	/**
 	 * Opens a sound file for reading.
 	 * @param filePath path to the file, URL or relative path.
@@ -95,43 +86,34 @@ public class JSPISoundHandle implements Closeable
 	public JSPISoundHandle(String filePath) throws IOException, UnsupportedAudioFileException
 	{
 		try {
-			URL url = new URL(filePath);
-			audioFileFormat = AudioSystem.getAudioFileFormat(url);
-			initHandle(url.toString(), AudioSystem.getAudioInputStream(url));
+			dataURL = new URL(filePath);
+			dataName = dataURL.toString();
+			audioFileFormat = AudioSystem.getAudioFileFormat(dataURL);
 		} catch (MalformedURLException ex) {
-			File f = new File(filePath);
-			audioFileFormat = AudioSystem.getAudioFileFormat(f);
-			initHandle(f.getPath(), AudioSystem.getAudioInputStream(f));
+			dataFile = new File(filePath);
+			dataName = dataFile.getPath();
+			audioFileFormat = AudioSystem.getAudioFileFormat(dataFile);
 		}
 	}
 	
-	private void initHandle(String name, AudioInputStream in) throws IOException, UnsupportedAudioFileException
+	/**
+	 * Opens a byte array for reading.
+	 * @param name the name of this handle.
+	 * @param data path to the file, URL or relative path.
+	 * @throws IOException if the resource can't be read.
+	 * @throws UnsupportedAudioFileException if the audio format is not recognized.
+	 */
+	public JSPISoundHandle(String name, byte[] data) throws IOException, UnsupportedAudioFileException
 	{
 		dataName = name;
-		audioStream = in;
-		audioFormat = audioStream.getFormat();
-	}
-
-	/** Closes this file on cleanup. */
-	public void finalize() throws Throwable
-	{
-		Common.close(this);
-		super.finalize();
-	}
-
-	/**
-	 * Closes this SoundData.
-	 * @throws IOException if an I/O exception occurs during the close.
-	 */
-	public void close() throws IOException
-	{
-		audioStream.close();
+		dataBytes = data;
+		audioFileFormat = AudioSystem.getAudioFileFormat(new ByteArrayInputStream(dataBytes));
 	}
 	
 	/**
 	 * Returns a decoder class that can decode this data into PCM data.
 	 */
-	public Decoder getDecoder()
+	public Decoder getDecoder() throws IOException
 	{
 		return new Decoder();
 	}
@@ -150,7 +132,7 @@ public class JSPISoundHandle implements Closeable
 		StringBuilder sb = new StringBuilder();
 		sb.append(getName());
 		sb.append(' ');
-		sb.append(audioFormat.toString());
+		sb.append(audioFileFormat.toString());
 		return sb.toString();
 	}
 
@@ -162,32 +144,40 @@ public class JSPISoundHandle implements Closeable
 		return dataName;
 	}
 
-	/**
-	 * @return the audioFormat
-	 */
-	public final AudioFormat getFormat()
+	// Creates the stream for the decoder.
+	private AudioInputStream startStream() throws IOException
 	{
-		return audioFormat;
+		try {
+			if (dataFile != null)
+				return AudioSystem.getAudioInputStream(dataFile);
+			else if (dataURL != null)
+				return AudioSystem.getAudioInputStream(dataURL);
+			else
+				return AudioSystem.getAudioInputStream(new ByteArrayInputStream(dataBytes));
+		} catch (UnsupportedAudioFileException e) {
+			throw new SoundException("UnsupportedAudioFileException thrown - should not be happening due to precheck.", e);
+		}
 	}
 	
-	public final AudioFileFormat getFileFormat()
-	{
-		return audioFileFormat;
-	}
-
 	/**
 	 * Decoder class that decodes sound as PCM audio.
 	 * @author Matthew Tropiano
 	 */
-	public class Decoder
+	public class Decoder implements Closeable
 	{
+		/** Audio format. */
+		private AudioFormat audioFormat;
+		/** Audio input stream. */
+		private AudioInputStream audioStream;
 		/** Audio format to decode to. */
 		private AudioFormat decodedAudioFormat;
 		/** Audio input stream to decode to. */
 		private AudioInputStream decodedAudioStream;
 		
-		Decoder()
+		Decoder() throws IOException
 		{
+			audioStream = startStream();
+			audioFormat = audioStream.getFormat();
 			decodedAudioFormat = new AudioFormat(
 				audioFormat.getSampleSizeInBits() == 8 ? AudioFormat.Encoding.PCM_UNSIGNED : AudioFormat.Encoding.PCM_SIGNED, 
 				audioFormat.getSampleRate(), 
@@ -224,6 +214,24 @@ public class JSPISoundHandle implements Closeable
 		}
 
 		/**
+		 * @return the audio format specs.
+		 * @see AudioFormat
+		 */
+		public final AudioFormat getFormat()
+		{
+			return audioFormat;
+		}
+		
+		/**
+		 * @return the audio file format specs.
+		 * @see AudioFileFormat
+		 */
+		public final AudioFileFormat getFileFormat()
+		{
+			return audioFileFormat;
+		}
+
+		/**
 		 * @return the decodedAudioFormat
 		 */
 		public final AudioFormat getDecodedAudioFormat()
@@ -237,7 +245,17 @@ public class JSPISoundHandle implements Closeable
 		 */
 		public void close() throws IOException
 		{
-			decodedAudioStream.close();
+			Common.close(audioStream);
+			Common.close(decodedAudioStream);
+		}
+
+		/** 
+		 * Closes this decoder on cleanup. 
+		 */
+		public void finalize() throws Throwable
+		{
+			Common.close(this);
+			super.finalize();
 		}
 
 	}

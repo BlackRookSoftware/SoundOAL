@@ -16,6 +16,8 @@ import java.io.*;
 
 import javax.sound.sampled.AudioFormat;
 
+import com.blackrook.commons.Common;
+import com.blackrook.oal.JSPISoundHandle.Decoder;
 import com.blackrook.oal.enums.SoundFormat;
 import com.blackrook.oal.exception.SoundException;
 
@@ -54,13 +56,16 @@ public final class OALBuffer extends OALObject
 	}
 
 	/**
-	 * Constructs a new sound buffer with an entire
-	 * buffer filled with data, decoded.
+	 * Constructs a new sound buffer with an entire buffer filled with data, decoded.
 	 * @param handle the data to use.
+	 * @throws IOException if a handle Decoder cannot be opened. 
 	 */
 	OALBuffer(OALSystem system, JSPISoundHandle handle) throws IOException
 	{
-		this(system, handle.getDecoder());
+		this(system);
+		Decoder decoder = handle.getDecoder();
+		loadFromDecoder(decoder);
+		Common.close(decoder);
 	}
 	
 	/**
@@ -71,10 +76,15 @@ public final class OALBuffer extends OALObject
 	OALBuffer(OALSystem system, JSPISoundHandle.Decoder decoder) throws IOException
 	{
 		super(system);
+		loadFromDecoder(decoder);
+	}
+
+	private void loadFromDecoder(JSPISoundHandle.Decoder decoder) throws IOException
+	{
 		AudioFormat df = decoder.getDecodedAudioFormat();
 		setFrequencyAndFormat(df);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		byte[] by = new byte[8192];
+		byte[] by = new byte[16384];
 		int l = 0;
 		do {
 			l = decoder.readPCMBytes(by);
